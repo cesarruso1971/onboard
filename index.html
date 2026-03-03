@@ -147,99 +147,12 @@
 
   .stat-num.aboard { color: var(--aboard); text-shadow: 0 0 20px #38bdf855; }
   .stat-num.out    { color: var(--out);    text-shadow: 0 0 20px #f9731655; }
-  .stat-num.total  { color: var(--accent); text-shadow: 0 0 20px #fbbf2455; }
 
   .stat-label {
     font-size: 0.65rem;
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.1em;
-  }
-
-  /* MY STATUS BANNER */
-  #my-banner {
-    margin: 16px;
-    border-radius: 14px;
-    padding: 16px 18px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    display: none;
-    flex-direction: column;
-    gap: 12px;
-    animation: slideIn 0.3s ease;
-  }
-
-  #my-banner.visible { display: flex; }
-
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateY(-8px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  .banner-top {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .banner-avatar {
-    width: 44px; height: 44px;
-    border-radius: 10px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.5rem;
-    flex-shrink: 0;
-  }
-
-  .banner-info { flex: 1; }
-  .banner-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; }
-  .banner-role { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
-
-  .toggle-row {
-    display: flex;
-    gap: 8px;
-  }
-
-  .toggle-btn {
-    flex: 1;
-    padding: 11px;
-    border-radius: 10px;
-    border: 2px solid transparent;
-    cursor: pointer;
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 0.82rem;
-    transition: all 0.2s;
-    display: flex; align-items: center; justify-content: center; gap: 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .toggle-btn.aboard-btn {
-    background: var(--aboard-dim);
-    color: var(--aboard);
-    border-color: var(--aboard-dim);
-  }
-  .toggle-btn.aboard-btn:hover,
-  .toggle-btn.aboard-btn.active {
-    background: var(--aboard);
-    color: #000;
-    border-color: var(--aboard);
-    box-shadow: 0 0 24px #38bdf855;
-  }
-
-  .toggle-btn.out-btn {
-    background: var(--out-dim);
-    color: var(--out);
-    border-color: var(--out-dim);
-  }
-  .toggle-btn.out-btn:hover,
-  .toggle-btn.out-btn.active {
-    background: var(--out);
-    color: #000;
-    border-color: var(--out);
-    box-shadow: 0 0 24px #f9731655;
   }
 
   /* SECTION */
@@ -284,6 +197,7 @@
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+    cursor: default;
   }
 
   .card::before {
@@ -296,28 +210,16 @@
   }
 
   .card.aboard::before { background: var(--aboard); box-shadow: 0 0 10px var(--aboard); }
-  .card.out::before    { background: var(--out); box-shadow: 0 0 10px var(--out); }
+  .card.out::before    { background: var(--out);    box-shadow: 0 0 10px var(--out); }
   .card.unknown::before { background: var(--muted); }
 
   .card.aboard { border-color: #166534; background: linear-gradient(160deg, #14532d 0%, #166534 100%); }
   .card.out    { border-color: #991b1b; background: linear-gradient(160deg, #7f1d1d 0%, #991b1b 100%); }
 
-  .card.is-me {
-    box-shadow: 0 0 0 2px var(--accent);
-    border-color: var(--accent);
-  }
-  .card.is-me::before { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
-
-  .card-icon {
-    font-size: 2.2rem;
-    line-height: 1;
-    filter: drop-shadow(0 2px 6px #00000055);
-  }
-
   .card-name {
     font-family: 'Syne', sans-serif;
     font-weight: 700;
-    font-size: 0.82rem;
+    font-size: 0.88rem;
     text-align: center;
     color: var(--text);
     line-height: 1.2;
@@ -330,20 +232,6 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
-
-  .card-status {
-    font-size: 0.68rem;
-    font-weight: 600;
-    padding: 3px 10px;
-    border-radius: 20px;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    margin-top: 2px;
-  }
-
-  .card.aboard .card-status  { background: var(--aboard-dim); color: var(--aboard); }
-  .card.out .card-status     { background: var(--out-dim);    color: var(--out); }
-  .card.unknown .card-status { background: #0d1f35;           color: var(--muted); }
 
   .card-time {
     font-size: 0.62rem;
@@ -404,13 +292,157 @@
     box-shadow: 0 0 12px #f9731644;
   }
 
-  .card { cursor: default; }
+  /* PIN OVERLAY */
+  #pin-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    background-image: radial-gradient(ellipse at 50% 30%, #0a2a4a 0%, transparent 70%);
+    z-index: 300;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    padding: 32px;
+  }
 
-  /* placeholder */
+  #pin-overlay .ship-icon { font-size: 3rem; margin-bottom: 0; }
+
+  #pin-overlay h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-align: center;
+    background: linear-gradient(135deg, #fff 20%, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  #pin-overlay p {
+    font-size: 0.82rem;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .pin-dots {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+  }
+
+  .pin-dot {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: transparent;
+    transition: all 0.2s;
+  }
+
+  .pin-dot.filled {
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 10px #fbbf2466;
+  }
+
+  .pin-dot.error {
+    background: var(--out);
+    border-color: var(--out);
+    box-shadow: 0 0 10px #f9731666;
+    animation: shake 0.4s ease;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%       { transform: translateX(-6px); }
+    40%       { transform: translateX(6px); }
+    60%       { transform: translateX(-4px); }
+    80%       { transform: translateX(4px); }
+  }
+
+  .pin-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .pin-key {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    height: 64px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .pin-key:active {
+    background: var(--surface2);
+    border-color: var(--accent);
+    transform: scale(0.94);
+  }
+
+  .pin-key.del { font-size: 1.1rem; color: var(--muted); }
+
+  .pin-key.empty {
+    background: transparent;
+    border-color: transparent;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .pin-error-msg {
+    font-size: 0.78rem;
+    color: var(--out);
+    text-align: center;
+    min-height: 1.2em;
+    letter-spacing: 0.04em;
+  }
 
 </style>
 </head>
 <body>
+
+<!-- PIN OVERLAY -->
+<div id="pin-overlay">
+  <span class="ship-icon">⚓</span>
+  <h2>Acceso Restringido</h2>
+  <p>Introduce el PIN de tripulación</p>
+  <div class="pin-dots">
+    <div class="pin-dot" id="dot-0"></div>
+    <div class="pin-dot" id="dot-1"></div>
+    <div class="pin-dot" id="dot-2"></div>
+    <div class="pin-dot" id="dot-3"></div>
+  </div>
+  <div class="pin-error-msg" id="pin-error"></div>
+  <div class="pin-keypad">
+    <button class="pin-key" onclick="pinPress('1')">1</button>
+    <button class="pin-key" onclick="pinPress('2')">2</button>
+    <button class="pin-key" onclick="pinPress('3')">3</button>
+    <button class="pin-key" onclick="pinPress('4')">4</button>
+    <button class="pin-key" onclick="pinPress('5')">5</button>
+    <button class="pin-key" onclick="pinPress('6')">6</button>
+    <button class="pin-key" onclick="pinPress('7')">7</button>
+    <button class="pin-key" onclick="pinPress('8')">8</button>
+    <button class="pin-key" onclick="pinPress('9')">9</button>
+    <button class="pin-key empty"></button>
+    <button class="pin-key" onclick="pinPress('0')">0</button>
+    <button class="pin-key del" onclick="pinDel()">⌫</button>
+  </div>
+</div>
 
 <!-- MAIN APP -->
 <header>
@@ -424,13 +456,11 @@
     <span class="stat-num aboard" id="count-aboard">0</span>
     <span class="stat-label">A bordo</span>
   </div>
-
   <div class="stat">
     <span class="stat-num out" id="count-out">0</span>
     <span class="stat-label">En tierra</span>
   </div>
 </div>
-
 
 <div class="section-title" id="section-out-label">En tierra</div>
 <div class="grid" id="grid-out"></div>
@@ -442,8 +472,65 @@
 <div class="grid" id="grid-unknown"></div>
 
 
+<!-- PIN logic (debe ser script normal, no module) -->
+<script>
+const CORRECT_PIN = '1234'; // ← cambia este PIN
+const PIN_SESSION = 'barco_pin_ok';
+
+let pinEntry = '';
+
+function updateDots() {
+  for (let i = 0; i < 4; i++) {
+    document.getElementById('dot-' + i).classList.toggle('filled', i < pinEntry.length);
+  }
+}
+
+function pinPress(digit) {
+  if (pinEntry.length >= 4) return;
+  pinEntry += digit;
+  updateDots();
+  if (pinEntry.length === 4) checkPin();
+}
+
+function pinDel() {
+  pinEntry = pinEntry.slice(0, -1);
+  updateDots();
+  document.getElementById('pin-error').textContent = '';
+}
+
+function checkPin() {
+  if (pinEntry === CORRECT_PIN) {
+    sessionStorage.setItem(PIN_SESSION, '1');
+    document.getElementById('pin-overlay').style.display = 'none';
+  } else {
+    const dots = document.querySelectorAll('.pin-dot');
+    dots.forEach(d => { d.classList.remove('filled'); d.classList.add('error'); });
+    document.getElementById('pin-error').textContent = 'PIN incorrecto, inténtalo de nuevo';
+    setTimeout(() => {
+      dots.forEach(d => d.classList.remove('error'));
+      pinEntry = '';
+      updateDots();
+      document.getElementById('pin-error').textContent = '';
+    }, 900);
+  }
+}
+
+// Teclado físico
+document.addEventListener('keydown', e => {
+  if (document.getElementById('pin-overlay').style.display === 'none') return;
+  if (e.key >= '0' && e.key <= '9') pinPress(e.key);
+  if (e.key === 'Backspace') pinDel();
+});
+
+// Si ya autenticó en esta sesión, ocultar overlay directamente
+if (sessionStorage.getItem(PIN_SESSION)) {
+  document.getElementById('pin-overlay').style.display = 'none';
+}
+</script>
+
+<!-- Firebase + App logic -->
 <script type="module">
-import { initializeApp }                from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { initializeApp }                  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getDatabase, ref, onValue, set } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
 // ── Firebase config ──────────────────────────────────────────
@@ -462,17 +549,17 @@ const db  = getDatabase(app);
 
 // ── Tripulación ───────────────────────────────────────────────
 const CREW = [
-  { id: 1,  name: "CESAR",          role: "Puente"},
-  { id: 2,  name: "SERGIO",       role: "Puente"},
-  { id: 3,  name: "SAUL",       role: "Puente"},
-  { id: 4,  name: "DANI",  role: "Máquinas"},
-  { id: 5,  name: "ANTON",   role: "Máquinas"},
-  { id: 6,  name: "JUAN A.",     role: "Cubierta"},
-  { id: 7,  name: "MESURA",        role: "Cubierta"},
-  { id: 8,  name: "NURIA",        role: "Cubierta"},
-  { id: 9,  name: "ADELINO",      role: "Sistemas"},
-  { id: 10, name: "TOÑO",        role: "Máquinas"},
-  { id: 11, name: "DAVID",          role: "Servicio"},
+  { id: 1,  name: "CESAR",  role: "Puente"   },
+  { id: 2,  name: "SERGIO", role: "Puente"   },
+  { id: 3,  name: "SAUL",   role: "Puente"   },
+  { id: 4,  name: "DANI",   role: "Máquinas" },
+  { id: 5,  name: "ANTON",  role: "Máquinas" },
+  { id: 6,  name: "JUAN A.",role: "Cubierta" },
+  { id: 7,  name: "MESURA", role: "Cubierta" },
+  { id: 8,  name: "NURIA",  role: "Cubierta" },
+  { id: 9,  name: "ADELINO",role: "Sistemas" },
+  { id: 10, name: "TOÑO",   role: "Máquinas" },
+  { id: 11, name: "DAVID",  role: "Servicio" },
 ];
 
 let statuses = {};
@@ -487,7 +574,6 @@ onValue(ref(db, 'crew'), snapshot => {
 function setStatus(id, status) {
   const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
   set(ref(db, `crew/${id}`), { status, time });
-  // renderAll() se llama automáticamente por onValue
 }
 window.setStatus = setStatus;
 
@@ -498,7 +584,6 @@ function makeCard(c) {
   const card   = document.createElement('div');
   card.className = `card ${status}`;
   card.innerHTML = `
-    
     <div class="card-name">${c.name}</div>
     <div class="card-role">${c.role}</div>
     <div class="card-time">${s ? 'desde ' + s.time : 'Sin confirmar'}</div>
@@ -522,9 +607,9 @@ function renderAll() {
   CREW.forEach(c => {
     const s    = statuses[c.id];
     const card = makeCard(c);
-    if (!s)                   { unknownEl.appendChild(card); }
+    if (!s)                         { unknownEl.appendChild(card); }
     else if (s.status === 'aboard') { aboardEl.appendChild(card); countAboard++; }
-    else                      { outEl.appendChild(card);    countOut++;    }
+    else                            { outEl.appendChild(card);    countOut++;    }
   });
 
   document.getElementById('count-aboard').textContent = countAboard;
