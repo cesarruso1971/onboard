@@ -445,61 +445,76 @@
 <div class="grid" id="grid-unknown"></div>
 
 
-<script>
+<script type="module">
+import { initializeApp }                from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, onValue, set } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+// ── Firebase config ──────────────────────────────────────────
+const firebaseConfig = {
+  apiKey:            "AIzaSyDY0VwMXFhNCa9eN4fGchGw0e6FpDA5kOE",
+  authDomain:        "onboard-8a1cf.firebaseapp.com",
+  databaseURL:       "https://onboard-8a1cf-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "onboard-8a1cf",
+  storageBucket:     "onboard-8a1cf.firebasestorage.app",
+  messagingSenderId: "305623972369",
+  appId:             "1:305623972369:web:09a8a752d4402f290d0fb0"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+// ── Tripulación ───────────────────────────────────────────────
 const CREW = [
-  { id: 1,  name: "Capitán",          role: "Puente",    icon: "🎖️"  },
-  { id: 2,  name: "1er Oficial",       role: "Puente",    icon: "🧭"  },
-  { id: 3,  name: "2do Oficial",       role: "Puente",    icon: "📡"  },
-  { id: 4,  name: "Jefe de Máquinas",  role: "Máquinas",  icon: "⚙️"  },
-  { id: 5,  name: "1ro de Máquinas",   role: "Máquinas",  icon: "🔧"  },
-  { id: 6,  name: "Contramaestre",     role: "Cubierta",  icon: "⚓"  },
-  { id: 7,  name: "Marinero 1",        role: "Cubierta",  icon: "🪝"  },
-  { id: 8,  name: "Marinero 2",        role: "Cubierta",  icon: "🪝"  },
-  { id: 9,  name: "Electricista",      role: "Sistemas",  icon: "⚡"  },
-  { id: 10, name: "Engrasador",        role: "Máquinas",  icon: "🛢️"  },
-  { id: 11, name: "Cocinero",          role: "Servicio",  icon: "👨‍🍳" },
+  { id: 1,  name: "Capitán",          role: "Puente",    icon: "🎖️" },
+  { id: 2,  name: "1er Oficial",       role: "Puente",    icon: "🧭" },
+  { id: 3,  name: "2do Oficial",       role: "Puente",    icon: "📡" },
+  { id: 4,  name: "Jefe de Máquinas",  role: "Máquinas",  icon: "⚙️" },
+  { id: 5,  name: "1ro de Máquinas",   role: "Máquinas",  icon: "🔧" },
+  { id: 6,  name: "Contramaestre",     role: "Cubierta",  icon: "⚓" },
+  { id: 7,  name: "Marinero 1",        role: "Cubierta",  icon: "🪝" },
+  { id: 8,  name: "Marinero 2",        role: "Cubierta",  icon: "🪝" },
+  { id: 9,  name: "Electricista",      role: "Sistemas",  icon: "⚡" },
+  { id: 10, name: "Engrasador",        role: "Máquinas",  icon: "🛢️" },
+  { id: 11, name: "Cocinero",          role: "Servicio",  icon: "👨‍🍳"},
 ];
 
-const STORAGE_KEY = 'barco_status_v2';
+let statuses = {};
 
-function loadStatuses() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
-  catch { return {}; }
-}
-function saveStatuses(s) { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
-
-let statuses = loadStatuses();
-
-function setStatus(id, status) {
-  statuses[id] = {
-    status,
-    time: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
-  };
-  saveStatuses(statuses);
+// ── Escucha cambios en Firebase en tiempo real ────────────────
+onValue(ref(db, 'crew'), snapshot => {
+  statuses = snapshot.val() || {};
   renderAll();
-}
+});
 
+// ── Guardar estado en Firebase ────────────────────────────────
+function setStatus(id, status) {
+  const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  set(ref(db, `crew/${id}`), { status, time });
+  // renderAll() se llama automáticamente por onValue
+}
+window.setStatus = setStatus;
+
+// ── Renderizado ───────────────────────────────────────────────
 function makeCard(c) {
-  const s = statuses[c.id];
+  const s      = statuses[c.id];
   const status = s ? s.status : 'unknown';
-  const card = document.createElement('div');
+  const card   = document.createElement('div');
   card.className = `card ${status}`;
   card.innerHTML = `
     <div class="card-icon">${c.icon}</div>
     <div class="card-name">${c.name}</div>
     <div class="card-role">${c.role}</div>
-    ${s ? `<div class="card-time">desde ${s.time}</div>` : '<div class="card-time">Sin confirmar</div>'}
+    <div class="card-time">${s ? 'desde ' + s.time : 'Sin confirmar'}</div>
     <div class="card-btns">
-      <button class="card-btn aboard-btn${status === 'aboard' ? ' active' : ''}" onclick="setStatus(${c.id},'aboard')">⚓ Bordo</button>
-      <button class="card-btn out-btn${status === 'out' ? ' active' : ''}"    onclick="setStatus(${c.id},'out')">🏖️ Tierra</button>
-    </div>
-  `;
+      <button class="card-btn aboard-btn${status === 'aboard' ? ' active' : ''}"
+        onclick="setStatus(${c.id},'aboard')">⚓ Bordo</button>
+      <button class="card-btn out-btn${status === 'out' ? ' active' : ''}"
+        onclick="setStatus(${c.id},'out')">🏖️ Tierra</button>
+    </div>`;
   return card;
 }
 
 function renderAll() {
-  statuses = loadStatuses();
-
   const aboardEl  = document.getElementById('grid-aboard');
   const outEl     = document.getElementById('grid-out');
   const unknownEl = document.getElementById('grid-unknown');
@@ -508,17 +523,11 @@ function renderAll() {
   let countAboard = 0, countOut = 0;
 
   CREW.forEach(c => {
-    const s = statuses[c.id];
+    const s    = statuses[c.id];
     const card = makeCard(c);
-    if (!s) {
-      unknownEl.appendChild(card);
-    } else if (s.status === 'aboard') {
-      aboardEl.appendChild(card);
-      countAboard++;
-    } else {
-      outEl.appendChild(card);
-      countOut++;
-    }
+    if (!s)                   { unknownEl.appendChild(card); }
+    else if (s.status === 'aboard') { aboardEl.appendChild(card); countAboard++; }
+    else                      { outEl.appendChild(card);    countOut++;    }
   });
 
   document.getElementById('count-aboard').textContent = countAboard;
@@ -529,27 +538,20 @@ function renderAll() {
   document.getElementById('section-unknown-label').style.display = unknownEl.children.length ? '' : 'none';
 }
 
-renderAll();
-setInterval(renderAll, 30000);
-
-// Service Worker para funcionamiento offline
+// ── PWA: Service Worker ───────────────────────────────────────
 if ('serviceWorker' in navigator) {
   const swCode = `
-    const CACHE = 'tripulacion-v1';
-    self.addEventListener('install', e => {
-      e.waitUntil(caches.open(CACHE).then(c => c.addAll(['/'])));
-      self.skipWaiting();
-    });
+    const CACHE = 'tripulacion-v2';
+    self.addEventListener('install', e => { self.skipWaiting(); });
     self.addEventListener('fetch', e => {
+      if (e.request.url.includes('firebasedatabase')) return;
       e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
-    });
-  `;
-  const swBlob = new Blob([swCode], {type: 'application/javascript'});
-  const swURL  = URL.createObjectURL(swBlob);
+    });`;
+  const swURL = URL.createObjectURL(new Blob([swCode], { type: 'application/javascript' }));
   navigator.serviceWorker.register(swURL).catch(() => {});
 }
 
-// Banner "Añadir a pantalla de inicio" en Android
+// ── PWA: Banner instalación Android ──────────────────────────
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
@@ -559,7 +561,7 @@ window.addEventListener('beforeinstallprompt', e => {
 window.addEventListener('appinstalled', () => {
   document.getElementById('install-banner').style.display = 'none';
 });
-function installApp() {
+window.installApp = function() {
   if (deferredPrompt) {
     deferredPrompt.prompt();
     deferredPrompt.userChoice.then(() => {
@@ -567,7 +569,7 @@ function installApp() {
       document.getElementById('install-banner').style.display = 'none';
     });
   }
-}
+};
 </script>
 
 <!-- Banner instalación Android -->
