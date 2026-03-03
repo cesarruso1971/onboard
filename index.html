@@ -18,33 +18,20 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="Tripulación">
 
-<!-- Iconos generados inline como SVG en base64 -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23060d18'/><text y='72' x='50' text-anchor='middle' font-size='60'>🚢</text></svg>">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23060d18'/><text y='72' x='50' text-anchor='middle' font-size='60'>🚢</text></svg>">
 
-<!-- Manifest inline -->
 <script>
   const manifest = {
-    name: "Control de Tripulación",
-    short_name: "Tripulación",
-    description: "Control de tripulación a bordo en tiempo real",
-    start_url: "./",
-    display: "standalone",
-    background_color: "#060d18",
-    theme_color: "#060d18",
-    orientation: "portrait",
-    icons: [
-      {
-        src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23060d18'/><text y='72' x='50' text-anchor='middle' font-size='60'>🚢</text></svg>",
-        sizes: "192x192",
-        type: "image/svg+xml"
-      }
-    ]
+    name: "Control de Tripulación", short_name: "Tripulación",
+    start_url: "./", display: "standalone",
+    background_color: "#060d18", theme_color: "#060d18", orientation: "portrait",
+    icons: [{ src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23060d18'/><text y='72' x='50' text-anchor='middle' font-size='60'>🚢</text></svg>", sizes: "192x192", type: "image/svg+xml" }]
   };
   const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-  const manifestURL = URL.createObjectURL(blob);
-  document.write('<link rel="manifest" href="' + manifestURL + '">');
+  document.write('<link rel="manifest" href="' + URL.createObjectURL(blob) + '">');
 </script>
+
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap');
 
@@ -62,6 +49,8 @@
     --muted: #4d7fa8;
     --border: #1a3a5c;
     --accent: #fbbf24;
+    --admin: #a78bfa;
+    --admin-dim: #2e1065;
   }
 
   body {
@@ -86,331 +75,200 @@
     background: linear-gradient(180deg, #0a2a4a 0%, transparent 100%);
   }
 
-  .ship-icon {
-    font-size: 2rem;
-    display: block;
-    margin-bottom: 6px;
-    filter: drop-shadow(0 0 16px #38bdf855);
-  }
+  .ship-icon { font-size: 2rem; display: block; margin-bottom: 6px; filter: drop-shadow(0 0 16px #38bdf855); }
 
   header h1 {
     font-family: 'Syne', sans-serif;
     font-size: clamp(1.3rem, 4.5vw, 2rem);
-    font-weight: 800;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+    font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;
     background: linear-gradient(135deg, #fff 20%, var(--accent) 60%, var(--aboard));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   }
 
-  .subtitle {
-    margin-top: 6px;
-    font-size: 0.8rem;
-    color: var(--muted);
-    letter-spacing: 0.12em;
+  .subtitle { margin-top: 6px; font-size: 0.8rem; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
+
+  /* ADMIN BADGE */
+  #admin-badge {
+    display: none;
+    position: absolute;
+    top: 16px; right: 16px;
+    background: var(--admin-dim);
+    border: 1px solid var(--admin);
+    color: var(--admin);
+    font-size: 0.68rem;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    border-radius: 8px;
+    padding: 5px 10px;
     text-transform: uppercase;
+    letter-spacing: 0.06em;
+    cursor: pointer;
   }
+  #admin-badge.visible { display: block; }
 
   /* STICKY STATS BAR */
   .stats {
-    display: flex;
-    justify-content: center;
-    gap: 0;
+    display: flex; justify-content: center; gap: 0;
     border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 0;
-    z-index: 50;
+    position: sticky; top: 0; z-index: 50;
     background: var(--bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   }
 
   .stat {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    padding: 12px 8px;
-    border-right: 1px solid var(--border);
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    gap: 2px; padding: 12px 8px; border-right: 1px solid var(--border);
   }
   .stat:last-child { border-right: none; }
 
-  .stat-num {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.8rem;
-    font-weight: 800;
-    line-height: 1;
-  }
-
+  .stat-num { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; line-height: 1; }
   .stat-num.aboard { color: var(--aboard); text-shadow: 0 0 20px #38bdf855; }
   .stat-num.out    { color: var(--out);    text-shadow: 0 0 20px #f9731655; }
-
-  .stat-label {
-    font-size: 0.65rem;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
+  .stat-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
 
   /* SECTION */
   .section-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    color: var(--muted);
-    padding: 0 18px;
-    margin: 22px 0 10px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    font-family: 'Syne', sans-serif; font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted);
+    padding: 0 18px; margin: 22px 0 10px;
+    display: flex; align-items: center; gap: 8px;
   }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-  .section-title::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
+  /* GRID */
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 0 12px; }
 
-  /* GRID — always 2 columns */
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    padding: 0 12px;
-  }
-
+  /* CARD */
   .card {
-    border-radius: 14px;
-    padding: 18px 12px 14px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-    cursor: default;
+    border-radius: 14px; padding: 16px 12px 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    display: flex; flex-direction: column; align-items: center;
+    gap: 5px; transition: all 0.3s ease; position: relative; overflow: hidden; cursor: default;
   }
 
   .card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    border-radius: 14px 14px 0 0;
-    transition: background 0.3s;
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    border-radius: 14px 14px 0 0; transition: background 0.3s;
   }
 
   .card.aboard::before { background: var(--aboard); box-shadow: 0 0 10px var(--aboard); }
   .card.out::before    { background: var(--out);    box-shadow: 0 0 10px var(--out); }
   .card.unknown::before { background: var(--muted); }
-
   .card.aboard { border-color: #166534; background: linear-gradient(160deg, #14532d 0%, #166534 100%); }
   .card.out    { border-color: #991b1b; background: linear-gradient(160deg, #7f1d1d 0%, #991b1b 100%); }
 
   .card-name {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 0.88rem;
-    text-align: center;
-    color: var(--text);
-    line-height: 1.2;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.88rem;
+    text-align: center; color: var(--text); line-height: 1.2;
   }
 
-  .card-role {
-    font-size: 0.65rem;
-    color: var(--muted);
-    text-align: center;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
+  .card-role { font-size: 0.65rem; color: var(--muted); text-align: center; text-transform: uppercase; letter-spacing: 0.05em; }
+  .card-time { font-size: 0.62rem; color: var(--muted); }
 
-  .card-time {
-    font-size: 0.62rem;
-    color: var(--muted);
-  }
-
-  /* CARD TOGGLE BUTTONS */
-  .card-btns {
-    display: flex;
+  /* PHONE — solo visible en modo admin */
+  .card-phone {
+    display: none;
+    align-items: center;
     gap: 5px;
-    width: 100%;
-    margin-top: 4px;
-  }
-
-  .card-btn {
-    flex: 1;
-    padding: 10px 4px;
-    min-height: 44px;
+    background: var(--admin-dim);
+    border: 1px solid var(--admin);
     border-radius: 8px;
-    border: 1.5px solid transparent;
-    cursor: pointer;
+    padding: 6px 10px;
+    text-decoration: none;
+    color: var(--admin);
     font-family: 'Syne', sans-serif;
     font-weight: 700;
-    font-size: 0.68rem;
-    text-transform: uppercase;
+    font-size: 0.72rem;
     letter-spacing: 0.04em;
     transition: all 0.18s;
-    display: flex;
-    align-items: center;
+    -webkit-tap-highlight-color: transparent;
+    width: 100%;
     justify-content: center;
-    gap: 3px;
+    margin-top: 2px;
+  }
+
+  .card-phone:hover, .card-phone:active {
+    background: var(--admin);
+    color: #000;
+    box-shadow: 0 0 12px #a78bfa55;
+  }
+
+  body.admin-mode .card-phone { display: flex; }
+
+  /* CARD TOGGLE BUTTONS */
+  .card-btns { display: flex; gap: 5px; width: 100%; margin-top: 4px; }
+
+  .card-btn {
+    flex: 1; padding: 10px 4px; min-height: 44px; border-radius: 8px;
+    border: 1.5px solid transparent; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.68rem;
+    text-transform: uppercase; letter-spacing: 0.04em; transition: all 0.18s;
+    display: flex; align-items: center; justify-content: center; gap: 3px;
     -webkit-tap-highlight-color: transparent;
   }
 
-  .card-btn.aboard-btn {
-    background: var(--aboard-dim);
-    color: var(--aboard);
-    border-color: var(--aboard-dim);
+  .card-btn.aboard-btn { background: var(--aboard-dim); color: var(--aboard); border-color: var(--aboard-dim); }
+  .card-btn.aboard-btn:hover, .card-btn.aboard-btn.active {
+    background: var(--aboard); color: #000; border-color: var(--aboard); box-shadow: 0 0 12px #38bdf844;
   }
-  .card-btn.aboard-btn:hover,
-  .card-btn.aboard-btn.active {
-    background: var(--aboard);
-    color: #000;
-    border-color: var(--aboard);
-    box-shadow: 0 0 12px #38bdf844;
-  }
-
-  .card-btn.out-btn {
-    background: var(--out-dim);
-    color: var(--out);
-    border-color: var(--out-dim);
-  }
-  .card-btn.out-btn:hover,
-  .card-btn.out-btn.active {
-    background: var(--out);
-    color: #000;
-    border-color: var(--out);
-    box-shadow: 0 0 12px #f9731644;
+  .card-btn.out-btn { background: var(--out-dim); color: var(--out); border-color: var(--out-dim); }
+  .card-btn.out-btn:hover, .card-btn.out-btn.active {
+    background: var(--out); color: #000; border-color: var(--out); box-shadow: 0 0 12px #f9731644;
   }
 
   /* PIN OVERLAY */
   #pin-overlay {
-    position: fixed;
-    inset: 0;
+    position: fixed; inset: 0;
     background: var(--bg);
     background-image: radial-gradient(ellipse at 50% 30%, #0a2a4a 0%, transparent 70%);
     z-index: 300;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 28px;
-    padding: 32px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 28px; padding: 32px;
   }
 
   #pin-overlay .ship-icon { font-size: 3rem; margin-bottom: 0; }
 
   #pin-overlay h2 {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.3rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    text-align: center;
+    font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.06em; text-align: center;
     background: linear-gradient(135deg, #fff 20%, var(--accent));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   }
 
-  #pin-overlay p {
-    font-size: 0.82rem;
-    color: var(--muted);
-    text-align: center;
-  }
+  #pin-subtitle { font-size: 0.82rem; color: var(--muted); text-align: center; }
 
-  .pin-dots {
-    display: flex;
-    gap: 14px;
-    justify-content: center;
-  }
+  .pin-dots { display: flex; gap: 14px; justify-content: center; }
 
   .pin-dot {
-    width: 16px; height: 16px;
-    border-radius: 50%;
-    border: 2px solid var(--border);
-    background: transparent;
-    transition: all 0.2s;
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 2px solid var(--border); background: transparent; transition: all 0.2s;
   }
-
-  .pin-dot.filled {
-    background: var(--accent);
-    border-color: var(--accent);
-    box-shadow: 0 0 10px #fbbf2466;
-  }
-
-  .pin-dot.error {
-    background: var(--out);
-    border-color: var(--out);
-    box-shadow: 0 0 10px #f9731666;
-    animation: shake 0.4s ease;
-  }
+  .pin-dot.filled { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 10px #fbbf2466; }
+  .pin-dot.filled.admin { background: var(--admin); border-color: var(--admin); box-shadow: 0 0 10px #a78bfa66; }
+  .pin-dot.error  { background: var(--out); border-color: var(--out); box-shadow: 0 0 10px #f9731666; animation: shake 0.4s ease; }
 
   @keyframes shake {
     0%, 100% { transform: translateX(0); }
-    20%       { transform: translateX(-6px); }
-    40%       { transform: translateX(6px); }
-    60%       { transform: translateX(-4px); }
-    80%       { transform: translateX(4px); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
   }
 
-  .pin-keypad {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    width: 100%;
-    max-width: 280px;
-  }
+  .pin-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; max-width: 280px; }
 
   .pin-key {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    color: var(--text);
-    font-family: 'Syne', sans-serif;
-    font-size: 1.4rem;
-    font-weight: 700;
-    height: 64px;
-    cursor: pointer;
-    transition: all 0.15s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    color: var(--text); font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 700;
+    height: 64px; cursor: pointer; transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+    -webkit-tap-highlight-color: transparent; user-select: none;
   }
+  .pin-key:active { background: var(--surface2); border-color: var(--accent); transform: scale(0.94); }
+  .pin-key.del    { font-size: 1.1rem; color: var(--muted); }
+  .pin-key.empty  { background: transparent; border-color: transparent; cursor: default; pointer-events: none; }
 
-  .pin-key:active {
-    background: var(--surface2);
-    border-color: var(--accent);
-    transform: scale(0.94);
-  }
-
-  .pin-key.del { font-size: 1.1rem; color: var(--muted); }
-
-  .pin-key.empty {
-    background: transparent;
-    border-color: transparent;
-    cursor: default;
-    pointer-events: none;
-  }
-
-  .pin-error-msg {
-    font-size: 0.78rem;
-    color: var(--out);
-    text-align: center;
-    min-height: 1.2em;
-    letter-spacing: 0.04em;
-  }
+  .pin-error-msg { font-size: 0.78rem; color: var(--out); text-align: center; min-height: 1.2em; letter-spacing: 0.04em; }
 
 </style>
 </head>
@@ -420,7 +278,7 @@
 <div id="pin-overlay">
   <span class="ship-icon">⚓</span>
   <h2>Acceso Restringido</h2>
-  <p>Introduce el PIN de tripulación</p>
+  <p id="pin-subtitle">Introduce el PIN de tripulación</p>
   <div class="pin-dots">
     <div class="pin-dot" id="dot-0"></div>
     <div class="pin-dot" id="dot-1"></div>
@@ -449,6 +307,7 @@
   <span class="ship-icon">🚢</span>
   <h1>Control de Tripulación</h1>
   <div class="subtitle">Toca una tarjeta para cambiar el estado</div>
+  <div id="admin-badge" onclick="exitAdmin()">🎖️ Capitán · Salir</div>
 </header>
 
 <div class="stats">
@@ -472,16 +331,21 @@
 <div class="grid" id="grid-unknown"></div>
 
 
-<!-- PIN logic (debe ser script normal, no module) -->
+<!-- PIN logic -->
 <script>
-const CORRECT_PIN = '2009'; // ← cambia este PIN
+const PIN_CREW    = '2009'; // ← PIN general tripulación
+const PIN_CAPTAIN = '0302'; // ← PIN del Capitán
 const PIN_SESSION = 'barco_pin_ok';
+const ADMIN_SESSION = 'barco_admin_ok';
 
 let pinEntry = '';
 
 function updateDots() {
+  const isAdmin = sessionStorage.getItem(ADMIN_SESSION);
   for (let i = 0; i < 4; i++) {
-    document.getElementById('dot-' + i).classList.toggle('filled', i < pinEntry.length);
+    const dot = document.getElementById('dot-' + i);
+    dot.classList.toggle('filled', i < pinEntry.length);
+    dot.classList.toggle('admin', i < pinEntry.length && !!isAdmin);
   }
 }
 
@@ -499,12 +363,18 @@ function pinDel() {
 }
 
 function checkPin() {
-  if (pinEntry === CORRECT_PIN) {
+  if (pinEntry === PIN_CAPTAIN) {
     sessionStorage.setItem(PIN_SESSION, '1');
+    sessionStorage.setItem(ADMIN_SESSION, '1');
+    document.getElementById('pin-overlay').style.display = 'none';
+    activateAdmin();
+  } else if (pinEntry === PIN_CREW) {
+    sessionStorage.setItem(PIN_SESSION, '1');
+    sessionStorage.removeItem(ADMIN_SESSION);
     document.getElementById('pin-overlay').style.display = 'none';
   } else {
     const dots = document.querySelectorAll('.pin-dot');
-    dots.forEach(d => { d.classList.remove('filled'); d.classList.add('error'); });
+    dots.forEach(d => { d.classList.remove('filled', 'admin'); d.classList.add('error'); });
     document.getElementById('pin-error').textContent = 'PIN incorrecto, inténtalo de nuevo';
     setTimeout(() => {
       dots.forEach(d => d.classList.remove('error'));
@@ -515,6 +385,17 @@ function checkPin() {
   }
 }
 
+function activateAdmin() {
+  document.body.classList.add('admin-mode');
+  document.getElementById('admin-badge').classList.add('visible');
+}
+
+function exitAdmin() {
+  sessionStorage.removeItem(ADMIN_SESSION);
+  document.body.classList.remove('admin-mode');
+  document.getElementById('admin-badge').classList.remove('visible');
+}
+
 // Teclado físico
 document.addEventListener('keydown', e => {
   if (document.getElementById('pin-overlay').style.display === 'none') return;
@@ -522,9 +403,10 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Backspace') pinDel();
 });
 
-// Si ya autenticó en esta sesión, ocultar overlay directamente
+// Restaurar sesión
 if (sessionStorage.getItem(PIN_SESSION)) {
   document.getElementById('pin-overlay').style.display = 'none';
+  if (sessionStorage.getItem(ADMIN_SESSION)) activateAdmin();
 }
 </script>
 
@@ -533,7 +415,6 @@ if (sessionStorage.getItem(PIN_SESSION)) {
 import { initializeApp }                  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getDatabase, ref, onValue, set } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
-// ── Firebase config ──────────────────────────────────────────
 const firebaseConfig = {
   apiKey:            "AIzaSyDY0VwMXFhNCa9eN4fGchGw0e6FpDA5kOE",
   authDomain:        "onboard-8a1cf.firebaseapp.com",
@@ -547,37 +428,34 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
-// ── Tripulación ───────────────────────────────────────────────
+// ── Tripulación — cambia los teléfonos cuando quieras ─────────
 const CREW = [
-  { id: 1,  name: "CESAR",  role: "Puente"   },
-  { id: 2,  name: "SERGIO", role: "Puente"   },
-  { id: 3,  name: "SAUL",   role: "Puente"   },
-  { id: 4,  name: "DANI",   role: "Máquinas" },
-  { id: 5,  name: "ANTON",  role: "Máquinas" },
-  { id: 6,  name: "JUAN A.",role: "Cubierta" },
-  { id: 7,  name: "MESURA", role: "Cubierta" },
-  { id: 8,  name: "NURIA",  role: "Cubierta" },
-  { id: 9,  name: "ADELINO",role: "Sistemas" },
-  { id: 10, name: "TOÑO",   role: "Máquinas" },
-  { id: 11, name: "DAVID",  role: "Servicio" },
+  { id: 1,  name: "CESAR",   role: "Puente",    phone: "600000001" },
+  { id: 2,  name: "SERGIO",  role: "Puente",    phone: "600000002" },
+  { id: 3,  name: "SAUL",    role: "Puente",    phone: "600000003" },
+  { id: 4,  name: "DANI",    role: "Máquinas",  phone: "600000004" },
+  { id: 5,  name: "ANTON",   role: "Máquinas",  phone: "600000005" },
+  { id: 6,  name: "JUAN A.", role: "Cubierta",  phone: "600000006" },
+  { id: 7,  name: "MESURA",  role: "Cubierta",  phone: "600000007" },
+  { id: 8,  name: "NURIA",   role: "Cubierta",  phone: "600000008" },
+  { id: 9,  name: "ADELINO", role: "Sistemas",  phone: "600000009" },
+  { id: 10, name: "TOÑO",    role: "Máquinas",  phone: "600000010" },
+  { id: 11, name: "DAVID",   role: "Servicio",  phone: "600000011" },
 ];
 
 let statuses = {};
 
-// ── Escucha cambios en Firebase en tiempo real ────────────────
 onValue(ref(db, 'crew'), snapshot => {
   statuses = snapshot.val() || {};
   renderAll();
 });
 
-// ── Guardar estado en Firebase ────────────────────────────────
 function setStatus(id, status) {
   const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
   set(ref(db, `crew/${id}`), { status, time });
 }
 window.setStatus = setStatus;
 
-// ── Renderizado ───────────────────────────────────────────────
 function makeCard(c) {
   const s      = statuses[c.id];
   const status = s ? s.status : 'unknown';
@@ -587,6 +465,7 @@ function makeCard(c) {
     <div class="card-name">${c.name}</div>
     <div class="card-role">${c.role}</div>
     <div class="card-time">${s ? 'desde ' + s.time : 'Sin confirmar'}</div>
+    <a class="card-phone" href="tel:${c.phone}">📞 ${c.phone}</a>
     <div class="card-btns">
       <button class="card-btn aboard-btn${status === 'aboard' ? ' active' : ''}"
         onclick="setStatus(${c.id},'aboard')">⚓ A Bordo</button>
@@ -620,7 +499,7 @@ function renderAll() {
   document.getElementById('section-unknown-label').style.display = unknownEl.children.length ? '' : 'none';
 }
 
-// ── PWA: Service Worker ───────────────────────────────────────
+// PWA Service Worker
 if ('serviceWorker' in navigator) {
   const swCode = `
     const CACHE = 'tripulacion-v2';
@@ -629,15 +508,13 @@ if ('serviceWorker' in navigator) {
       if (e.request.url.includes('firebasedatabase')) return;
       e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
     });`;
-  const swURL = URL.createObjectURL(new Blob([swCode], { type: 'application/javascript' }));
-  navigator.serviceWorker.register(swURL).catch(() => {});
+  navigator.serviceWorker.register(URL.createObjectURL(new Blob([swCode], { type: 'application/javascript' }))).catch(() => {});
 }
 
-// ── PWA: Banner instalación Android ──────────────────────────
+// Banner instalación Android
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
+  e.preventDefault(); deferredPrompt = e;
   document.getElementById('install-banner').style.display = 'flex';
 });
 window.addEventListener('appinstalled', () => {
