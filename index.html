@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Control de Tripulación</title>
+
+<!-- PWA: General -->
+<meta name="description" content="Control de tripulación a bordo en tiempo real">
+<meta name="theme-color" content="#060d18">
+
+<!-- PWA: iOS (Safari) -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tripulación">
+
+<!-- PWA: Android (Chrome) -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="Tripulación">
+
+<!-- Iconos generados inline como SVG en base64 -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23060d18'/><text y='72' x='50' text-anchor='middle' font-size='60'>🚢</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23060d18'/><text y='72' x='50' text-anchor='middle' font-size='60'>🚢</text></svg>">
+
+<!-- Manifest inline -->
+<script>
+  const manifest = {
+    name: "Control de Tripulación",
+    short_name: "Tripulación",
+    description: "Control de tripulación a bordo en tiempo real",
+    start_url: "./",
+    display: "standalone",
+    background_color: "#060d18",
+    theme_color: "#060d18",
+    orientation: "portrait",
+    icons: [
+      {
+        src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23060d18'/><text y='72' x='50' text-anchor='middle' font-size='60'>🚢</text></svg>",
+        sizes: "192x192",
+        type: "image/svg+xml"
+      }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+  const manifestURL = URL.createObjectURL(blob);
+  document.write('<link rel="manifest" href="' + manifestURL + '">');
+</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #060d18;
+    --surface: #0d1f35;
+    --surface2: #122640;
+    --aboard: #38bdf8;
+    --aboard-dim: #0c4a6e;
+    --out: #f97316;
+    --out-dim: #7c2d12;
+    --text: #e8f4fd;
+    --muted: #4d7fa8;
+    --border: #1a3a5c;
+    --accent: #fbbf24;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 0 60px;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(ellipse at 50% 0%, #0a2a4a88 0%, transparent 60%),
+      repeating-linear-gradient(0deg, transparent, transparent 40px, #0a1f3308 41px),
+      repeating-linear-gradient(90deg, transparent, transparent 40px, #0a1f3308 41px);
+  }
+
+  /* HEADER */
+  header {
+    position: relative;
+    padding: 24px 24px 20px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #0a2a4a 0%, transparent 100%);
+  }
+
+  .ship-icon {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 6px;
+    filter: drop-shadow(0 0 16px #38bdf855);
+  }
+
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.3rem, 4.5vw, 2rem);
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #fff 20%, var(--accent) 60%, var(--aboard));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    margin-top: 6px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* STICKY STATS BAR */
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .stat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 12px 8px;
+    border-right: 1px solid var(--border);
+  }
+  .stat:last-child { border-right: none; }
+
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .stat-num.aboard { color: var(--aboard); text-shadow: 0 0 20px #38bdf855; }
+  .stat-num.out    { color: var(--out);    text-shadow: 0 0 20px #f9731655; }
+  .stat-num.total  { color: var(--accent); text-shadow: 0 0 20px #fbbf2455; }
+
+  .stat-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* MY STATUS BANNER */
+  #my-banner {
+    margin: 16px;
+    border-radius: 14px;
+    padding: 16px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+    animation: slideIn 0.3s ease;
+  }
+
+  #my-banner.visible { display: flex; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .banner-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .banner-avatar {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+
+  .banner-info { flex: 1; }
+  .banner-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; }
+  .banner-role { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+  .toggle-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .toggle-btn {
+    flex: 1;
+    padding: 11px;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.82rem;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .toggle-btn.aboard-btn {
+    background: var(--aboard-dim);
+    color: var(--aboard);
+    border-color: var(--aboard-dim);
+  }
+  .toggle-btn.aboard-btn:hover,
+  .toggle-btn.aboard-btn.active {
+    background: var(--aboard);
+    color: #000;
+    border-color: var(--aboard);
+    box-shadow: 0 0 24px #38bdf855;
+  }
+
+  .toggle-btn.out-btn {
+    background: var(--out-dim);
+    color: var(--out);
+    border-color: var(--out-dim);
+  }
+  .toggle-btn.out-btn:hover,
+  .toggle-btn.out-btn.active {
+    background: var(--out);
+    color: #000;
+    border-color: var(--out);
+    box-shadow: 0 0 24px #f9731655;
+  }
+
+  /* SECTION */
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    padding: 0 18px;
+    margin: 22px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* GRID — always 2 columns */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 0 12px;
+  }
+
+  .card {
+    border-radius: 14px;
+    padding: 18px 12px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 14px 14px 0 0;
+    transition: background 0.3s;
+  }
+
+  .card.aboard::before { background: var(--aboard); box-shadow: 0 0 10px var(--aboard); }
+  .card.out::before    { background: var(--out); box-shadow: 0 0 10px var(--out); }
+  .card.unknown::before { background: var(--muted); }
+
+  .card.aboard { border-color: #166534; background: linear-gradient(160deg, #14532d 0%, #166534 100%); }
+  .card.out    { border-color: #991b1b; background: linear-gradient(160deg, #7f1d1d 0%, #991b1b 100%); }
+
+  .card.is-me {
+    box-shadow: 0 0 0 2px var(--accent);
+    border-color: var(--accent);
+  }
+  .card.is-me::before { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+  .card-icon {
+    font-size: 2.2rem;
+    line-height: 1;
+    filter: drop-shadow(0 2px 6px #00000055);
+  }
+
+  .card-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.82rem;
+    text-align: center;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  .card-role {
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .card-status {
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .card.aboard .card-status  { background: var(--aboard-dim); color: var(--aboard); }
+  .card.out .card-status     { background: var(--out-dim);    color: var(--out); }
+  .card.unknown .card-status { background: #0d1f35;           color: var(--muted); }
+
+  .card-time {
+    font-size: 0.62rem;
+    color: var(--muted);
+  }
+
+  /* CARD TOGGLE BUTTONS */
+  .card-btns {
+    display: flex;
+    gap: 5px;
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  .card-btn {
+    flex: 1;
+    padding: 10px 4px;
+    min-height: 44px;
+    border-radius: 8px;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    transition: all 0.18s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .card-btn.aboard-btn {
+    background: var(--aboard-dim);
+    color: var(--aboard);
+    border-color: var(--aboard-dim);
+  }
+  .card-btn.aboard-btn:hover,
+  .card-btn.aboard-btn.active {
+    background: var(--aboard);
+    color: #000;
+    border-color: var(--aboard);
+    box-shadow: 0 0 12px #38bdf844;
+  }
+
+  .card-btn.out-btn {
+    background: var(--out-dim);
+    color: var(--out);
+    border-color: var(--out-dim);
+  }
+  .card-btn.out-btn:hover,
+  .card-btn.out-btn.active {
+    background: var(--out);
+    color: #000;
+    border-color: var(--out);
+    box-shadow: 0 0 12px #f9731644;
+  }
+
+  .card { cursor: default; }
+
+  /* placeholder */
+
+</style>
+</head>
+<body>
+
+<!-- MAIN APP -->
+<header>
+  <span class="ship-icon">🚢</span>
+  <h1>Control de Tripulación</h1>
+  <div class="subtitle">Toca una tarjeta para cambiar el estado</div>
+</header>
+
+<div class="stats">
+  <div class="stat">
+    <span class="stat-num aboard" id="count-aboard">0</span>
+    <span class="stat-label">A bordo</span>
+  </div>
+  <div class="stat">
+    <span class="stat-num total">11</span>
+    <span class="stat-label">Tripulación</span>
+  </div>
+  <div class="stat">
+    <span class="stat-num out" id="count-out">0</span>
+    <span class="stat-label">En tierra</span>
+  </div>
+</div>
+
+
+<div class="section-title" id="section-out-label">En tierra</div>
+<div class="grid" id="grid-out"></div>
+
+<div class="section-title" id="section-aboard-label" style="margin-top:24px">A bordo</div>
+<div class="grid" id="grid-aboard"></div>
+
+<div class="section-title" id="section-unknown-label" style="margin-top:24px">Sin confirmar</div>
+<div class="grid" id="grid-unknown"></div>
+
+
+<script>
+const CREW = [
+  { id: 1,  name: "Capitán",          role: "Puente",    icon: "🎖️"  },
+  { id: 2,  name: "1er Oficial",       role: "Puente",    icon: "🧭"  },
+  { id: 3,  name: "2do Oficial",       role: "Puente",    icon: "📡"  },
+  { id: 4,  name: "Jefe de Máquinas",  role: "Máquinas",  icon: "⚙️"  },
+  { id: 5,  name: "1ro de Máquinas",   role: "Máquinas",  icon: "🔧"  },
+  { id: 6,  name: "Contramaestre",     role: "Cubierta",  icon: "⚓"  },
+  { id: 7,  name: "Marinero 1",        role: "Cubierta",  icon: "🪝"  },
+  { id: 8,  name: "Marinero 2",        role: "Cubierta",  icon: "🪝"  },
+  { id: 9,  name: "Electricista",      role: "Sistemas",  icon: "⚡"  },
+  { id: 10, name: "Engrasador",        role: "Máquinas",  icon: "🛢️"  },
+  { id: 11, name: "Cocinero",          role: "Servicio",  icon: "👨‍🍳" },
+];
+
+const STORAGE_KEY = 'barco_status_v2';
+
+function loadStatuses() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+  catch { return {}; }
+}
+function saveStatuses(s) { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
+
+let statuses = loadStatuses();
+
+function setStatus(id, status) {
+  statuses[id] = {
+    status,
+    time: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+  };
+  saveStatuses(statuses);
+  renderAll();
+}
+
+function makeCard(c) {
+  const s = statuses[c.id];
+  const status = s ? s.status : 'unknown';
+  const card = document.createElement('div');
+  card.className = `card ${status}`;
+  card.innerHTML = `
+    <div class="card-icon">${c.icon}</div>
+    <div class="card-name">${c.name}</div>
+    <div class="card-role">${c.role}</div>
+    ${s ? `<div class="card-time">desde ${s.time}</div>` : '<div class="card-time">Sin confirmar</div>'}
+    <div class="card-btns">
+      <button class="card-btn aboard-btn${status === 'aboard' ? ' active' : ''}" onclick="setStatus(${c.id},'aboard')">⚓ Bordo</button>
+      <button class="card-btn out-btn${status === 'out' ? ' active' : ''}"    onclick="setStatus(${c.id},'out')">🏖️ Tierra</button>
+    </div>
+  `;
+  return card;
+}
+
+function renderAll() {
+  statuses = loadStatuses();
+
+  const aboardEl  = document.getElementById('grid-aboard');
+  const outEl     = document.getElementById('grid-out');
+  const unknownEl = document.getElementById('grid-unknown');
+  aboardEl.innerHTML = outEl.innerHTML = unknownEl.innerHTML = '';
+
+  let countAboard = 0, countOut = 0;
+
+  CREW.forEach(c => {
+    const s = statuses[c.id];
+    const card = makeCard(c);
+    if (!s) {
+      unknownEl.appendChild(card);
+    } else if (s.status === 'aboard') {
+      aboardEl.appendChild(card);
+      countAboard++;
+    } else {
+      outEl.appendChild(card);
+      countOut++;
+    }
+  });
+
+  document.getElementById('count-aboard').textContent = countAboard;
+  document.getElementById('count-out').textContent    = countOut;
+
+  document.getElementById('section-aboard-label').style.display  = aboardEl.children.length  ? '' : 'none';
+  document.getElementById('section-out-label').style.display     = outEl.children.length     ? '' : 'none';
+  document.getElementById('section-unknown-label').style.display = unknownEl.children.length ? '' : 'none';
+}
+
+renderAll();
+setInterval(renderAll, 30000);
+
+// Service Worker para funcionamiento offline
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE = 'tripulacion-v1';
+    self.addEventListener('install', e => {
+      e.waitUntil(caches.open(CACHE).then(c => c.addAll(['/'])));
+      self.skipWaiting();
+    });
+    self.addEventListener('fetch', e => {
+      e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+    });
+  `;
+  const swBlob = new Blob([swCode], {type: 'application/javascript'});
+  const swURL  = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swURL).catch(() => {});
+}
+
+// Banner "Añadir a pantalla de inicio" en Android
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-banner').style.display = 'flex';
+});
+window.addEventListener('appinstalled', () => {
+  document.getElementById('install-banner').style.display = 'none';
+});
+function installApp() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => {
+      deferredPrompt = null;
+      document.getElementById('install-banner').style.display = 'none';
+    });
+  }
+}
+</script>
+
+<!-- Banner instalación Android -->
+<div id="install-banner" style="
+  display:none; position:fixed; bottom:0; left:0; right:0;
+  background:#0d1f35; border-top:1px solid #1a3a5c;
+  padding:14px 16px; align-items:center; justify-content:space-between;
+  gap:12px; z-index:200; font-family:'DM Sans',sans-serif;">
+  <div style="display:flex;align-items:center;gap:10px">
+    <span style="font-size:1.6rem">🚢</span>
+    <div>
+      <div style="font-weight:700;font-size:0.85rem;color:#e8f4fd">Instalar como app</div>
+      <div style="font-size:0.72rem;color:#4d7fa8">Añadir a pantalla de inicio</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button onclick="document.getElementById('install-banner').style.display='none'"
+      style="background:transparent;border:1px solid #1a3a5c;color:#4d7fa8;
+      padding:8px 12px;border-radius:8px;cursor:pointer;font-size:0.78rem">Ahora no</button>
+    <button onclick="installApp()"
+      style="background:#38bdf8;border:none;color:#000;font-weight:700;
+      padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.78rem">Instalar</button>
+  </div>
+</div>
+</body>
+</html>
