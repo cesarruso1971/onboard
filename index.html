@@ -4,23 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Control de Tripulación</title>
-
-<!-- PWA: General -->
 <meta name="description" content="Control de tripulación a bordo en tiempo real">
 <meta name="theme-color" content="#060d18">
-
-<!-- PWA: iOS (Safari) -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Tripulación">
-
-<!-- PWA: Android (Chrome) -->
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="Tripulación">
-
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23060d18'/><text y='72' x='50' text-anchor='middle' font-size='60'>🚢</text></svg>">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23060d18'/><text y='72' x='50' text-anchor='middle' font-size='60'>🚢</text></svg>">
-
 <script>
   const manifest = {
     name: "Control de Tripulación", short_name: "Tripulación",
@@ -31,7 +23,6 @@
   const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
   document.write('<link rel="manifest" href="' + URL.createObjectURL(blob) + '">');
 </script>
-
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap');
 
@@ -55,78 +46,78 @@
 
   body {
     font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 0 0 60px;
-    overflow-x: hidden;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; overflow-x: hidden;
     background-image:
       radial-gradient(ellipse at 50% 0%, #0a2a4a88 0%, transparent 60%),
       repeating-linear-gradient(0deg, transparent, transparent 40px, #0a1f3308 41px),
       repeating-linear-gradient(90deg, transparent, transparent 40px, #0a1f3308 41px);
   }
 
-  /* HEADER */
+  /* ── SCREENS ─────────────────────────────── */
+  .screen { display: none; min-height: 100vh; padding-bottom: 60px; }
+  .screen.active { display: block; }
+
+  /* ── HEADER ──────────────────────────────── */
   header {
-    position: relative;
-    padding: 24px 24px 20px;
-    text-align: center;
+    position: relative; padding: 24px 24px 20px; text-align: center;
     border-bottom: 1px solid var(--border);
     background: linear-gradient(180deg, #0a2a4a 0%, transparent 100%);
   }
-
   .ship-icon { font-size: 2rem; display: block; margin-bottom: 6px; filter: drop-shadow(0 0 16px #38bdf855); }
-
   header h1 {
-    font-family: 'Syne', sans-serif;
-    font-size: clamp(1.3rem, 4.5vw, 2rem);
+    font-family: 'Syne', sans-serif; font-size: clamp(1.3rem, 4.5vw, 2rem);
     font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;
     background: linear-gradient(135deg, #fff 20%, var(--accent) 60%, var(--aboard));
     -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   }
-
   .subtitle { margin-top: 6px; font-size: 0.8rem; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
 
-  /* ADMIN BADGE */
   #admin-badge {
-    display: none;
-    position: absolute;
-    top: 16px; right: 16px;
-    background: var(--admin-dim);
-    border: 1px solid var(--admin);
-    color: var(--admin);
-    font-size: 0.68rem;
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    border-radius: 8px;
-    padding: 5px 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    cursor: pointer;
+    display: none; position: absolute; top: 16px; right: 16px;
+    background: var(--admin-dim); border: 1px solid var(--admin); color: var(--admin);
+    font-size: 0.68rem; font-family: 'Syne', sans-serif; font-weight: 700;
+    border-radius: 8px; padding: 5px 10px; text-transform: uppercase;
+    letter-spacing: 0.06em; cursor: pointer;
   }
   #admin-badge.visible { display: block; }
 
-  /* STICKY STATS BAR */
+  /* ── LOG BUTTON (solo admin) ─────────────── */
+  #log-btn {
+    display: none;
+    margin: 16px 12px 0;
+    width: calc(100% - 24px);
+    padding: 13px;
+    background: var(--admin-dim);
+    border: 1px solid var(--admin);
+    border-radius: 12px;
+    color: var(--admin);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  #log-btn:hover { background: var(--admin); color: #000; }
+  body.admin-mode #log-btn { display: block; }
+
+  /* ── STICKY STATS ────────────────────────── */
   .stats {
-    display: flex; justify-content: center; gap: 0;
-    border-bottom: 1px solid var(--border);
+    display: flex; border-bottom: 1px solid var(--border);
     position: sticky; top: 0; z-index: 50;
-    background: var(--bg);
-    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    background: var(--bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   }
-
-  .stat {
-    flex: 1; display: flex; flex-direction: column; align-items: center;
-    gap: 2px; padding: 12px 8px; border-right: 1px solid var(--border);
-  }
+  .stat { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 8px; border-right: 1px solid var(--border); }
   .stat:last-child { border-right: none; }
-
   .stat-num { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; line-height: 1; }
   .stat-num.aboard { color: var(--aboard); text-shadow: 0 0 20px #38bdf855; }
   .stat-num.out    { color: var(--out);    text-shadow: 0 0 20px #f9731655; }
   .stat-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
 
-  /* SECTION */
+  /* ── SECTION TITLES ──────────────────────── */
   .section-title {
     font-family: 'Syne', sans-serif; font-size: 0.65rem; font-weight: 700;
     text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted);
@@ -135,69 +126,42 @@
   }
   .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-  /* GRID */
+  /* ── GRID ────────────────────────────────── */
   .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 0 12px; }
 
-  /* CARD */
+  /* ── CARD ────────────────────────────────── */
   .card {
     border-radius: 14px; padding: 16px 12px 14px;
     background: var(--surface); border: 1px solid var(--border);
     display: flex; flex-direction: column; align-items: center;
     gap: 5px; transition: all 0.3s ease; position: relative; overflow: hidden; cursor: default;
   }
-
   .card::before {
     content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
     border-radius: 14px 14px 0 0; transition: background 0.3s;
   }
-
   .card.aboard::before { background: var(--aboard); box-shadow: 0 0 10px var(--aboard); }
   .card.out::before    { background: var(--out);    box-shadow: 0 0 10px var(--out); }
   .card.unknown::before { background: var(--muted); }
   .card.aboard { border-color: #166534; background: linear-gradient(160deg, #14532d 0%, #166534 100%); }
   .card.out    { border-color: #991b1b; background: linear-gradient(160deg, #7f1d1d 0%, #991b1b 100%); }
 
-  .card-name {
-    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.88rem;
-    text-align: center; color: var(--text); line-height: 1.2;
-  }
-
+  .card-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.88rem; text-align: center; color: var(--text); line-height: 1.2; }
   .card-role { font-size: 0.65rem; color: var(--muted); text-align: center; text-transform: uppercase; letter-spacing: 0.05em; }
   .card-time { font-size: 0.62rem; color: var(--muted); }
 
-  /* PHONE — solo visible en modo admin */
   .card-phone {
-    display: none;
-    align-items: center;
-    gap: 5px;
-    background: var(--admin-dim);
-    border: 1px solid var(--admin);
-    border-radius: 8px;
-    padding: 6px 10px;
-    text-decoration: none;
-    color: var(--admin);
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 0.72rem;
-    letter-spacing: 0.04em;
-    transition: all 0.18s;
-    -webkit-tap-highlight-color: transparent;
-    width: 100%;
-    justify-content: center;
-    margin-top: 2px;
+    display: none; align-items: center; gap: 5px;
+    background: var(--admin-dim); border: 1px solid var(--admin);
+    border-radius: 8px; padding: 6px 10px; text-decoration: none;
+    color: var(--admin); font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 0.72rem; letter-spacing: 0.04em; transition: all 0.18s;
+    -webkit-tap-highlight-color: transparent; width: 100%; justify-content: center; margin-top: 2px;
   }
-
-  .card-phone:hover, .card-phone:active {
-    background: var(--admin);
-    color: #000;
-    box-shadow: 0 0 12px #a78bfa55;
-  }
-
+  .card-phone:hover, .card-phone:active { background: var(--admin); color: #000; box-shadow: 0 0 12px #a78bfa55; }
   body.admin-mode .card-phone { display: flex; }
 
-  /* CARD TOGGLE BUTTONS */
   .card-btns { display: flex; gap: 5px; width: 100%; margin-top: 4px; }
-
   .card-btn {
     flex: 1; padding: 10px 4px; min-height: 44px; border-radius: 8px;
     border: 1.5px solid transparent; cursor: pointer;
@@ -206,57 +170,121 @@
     display: flex; align-items: center; justify-content: center; gap: 3px;
     -webkit-tap-highlight-color: transparent;
   }
-
   .card-btn.aboard-btn { background: var(--aboard-dim); color: var(--aboard); border-color: var(--aboard-dim); }
-  .card-btn.aboard-btn:hover, .card-btn.aboard-btn.active {
-    background: var(--aboard); color: #000; border-color: var(--aboard); box-shadow: 0 0 12px #38bdf844;
-  }
+  .card-btn.aboard-btn:hover, .card-btn.aboard-btn.active { background: var(--aboard); color: #000; border-color: var(--aboard); box-shadow: 0 0 12px #38bdf844; }
   .card-btn.out-btn { background: var(--out-dim); color: var(--out); border-color: var(--out-dim); }
-  .card-btn.out-btn:hover, .card-btn.out-btn.active {
-    background: var(--out); color: #000; border-color: var(--out); box-shadow: 0 0 12px #f9731644;
+  .card-btn.out-btn:hover, .card-btn.out-btn.active { background: var(--out); color: #000; border-color: var(--out); box-shadow: 0 0 12px #f9731644; }
+
+  /* ── LOG SCREEN ──────────────────────────── */
+  #screen-log header { padding: 20px 24px 16px; }
+
+  .log-topbar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 50;
+    background: var(--bg); backdrop-filter: blur(12px);
   }
 
-  /* PIN OVERLAY */
+  .back-btn {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); border-radius: 10px; padding: 8px 14px;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.78rem;
+    cursor: pointer; transition: all 0.18s; white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .back-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .log-topbar-title {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1rem;
+    text-transform: uppercase; letter-spacing: 0.06em; flex: 1;
+  }
+
+  .export-btn {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--accent); border-radius: 10px; padding: 8px 14px;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.78rem;
+    cursor: pointer; transition: all 0.18s; white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .export-btn:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+
+  /* Filtros */
+  .log-filters {
+    display: flex; gap: 8px; padding: 12px 14px; overflow-x: auto;
+    border-bottom: 1px solid var(--border);
+    scrollbar-width: none;
+  }
+  .log-filters::-webkit-scrollbar { display: none; }
+
+  .filter-btn {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--muted); border-radius: 20px; padding: 6px 14px;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer;
+    transition: all 0.18s; white-space: nowrap; flex-shrink: 0;
+  }
+  .filter-btn.active { background: var(--surface2); border-color: var(--accent); color: var(--accent); }
+
+  /* Entradas del log */
+  .log-list { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+
+  .log-entry {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 14px;
+    display: flex; align-items: center; gap: 12px;
+    animation: fadeIn 0.2s ease;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  .log-entry-dot {
+    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  }
+  .log-entry-dot.aboard { background: var(--aboard); box-shadow: 0 0 6px var(--aboard); }
+  .log-entry-dot.out    { background: var(--out);    box-shadow: 0 0 6px var(--out); }
+
+  .log-entry-info { flex: 1; min-width: 0; }
+  .log-entry-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem; }
+  .log-entry-role { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+
+  .log-entry-right { text-align: right; flex-shrink: 0; }
+  .log-entry-status {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.05em; padding: 2px 8px; border-radius: 10px;
+  }
+  .log-entry-status.aboard { background: var(--aboard-dim); color: var(--aboard); }
+  .log-entry-status.out    { background: var(--out-dim);    color: var(--out); }
+  .log-entry-datetime { font-size: 0.65rem; color: var(--muted); margin-top: 3px; }
+
+  .log-empty {
+    text-align: center; padding: 60px 20px;
+    color: var(--muted); font-size: 0.85rem;
+  }
+  .log-empty-icon { font-size: 2.5rem; display: block; margin-bottom: 12px; }
+
+  /* ── PIN OVERLAY ─────────────────────────── */
   #pin-overlay {
-    position: fixed; inset: 0;
-    background: var(--bg);
+    position: fixed; inset: 0; background: var(--bg);
     background-image: radial-gradient(ellipse at 50% 30%, #0a2a4a 0%, transparent 70%);
-    z-index: 300;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 28px; padding: 32px;
+    z-index: 300; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 28px; padding: 32px;
   }
-
   #pin-overlay .ship-icon { font-size: 3rem; margin-bottom: 0; }
-
   #pin-overlay h2 {
     font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800;
     text-transform: uppercase; letter-spacing: 0.06em; text-align: center;
     background: linear-gradient(135deg, #fff 20%, var(--accent));
     -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   }
-
   #pin-subtitle { font-size: 0.82rem; color: var(--muted); text-align: center; }
-
   .pin-dots { display: flex; gap: 14px; justify-content: center; }
-
-  .pin-dot {
-    width: 16px; height: 16px; border-radius: 50%;
-    border: 2px solid var(--border); background: transparent; transition: all 0.2s;
-  }
+  .pin-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border); background: transparent; transition: all 0.2s; }
   .pin-dot.filled { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 10px #fbbf2466; }
   .pin-dot.filled.admin { background: var(--admin); border-color: var(--admin); box-shadow: 0 0 10px #a78bfa66; }
-  .pin-dot.error  { background: var(--out); border-color: var(--out); box-shadow: 0 0 10px #f9731666; animation: shake 0.4s ease; }
-
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    20% { transform: translateX(-6px); }
-    40% { transform: translateX(6px); }
-    60% { transform: translateX(-4px); }
-    80% { transform: translateX(4px); }
-  }
-
+  .pin-dot.error  { background: var(--out); border-color: var(--out); animation: shake 0.4s ease; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
   .pin-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; max-width: 280px; }
-
   .pin-key {
     background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
     color: var(--text); font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 700;
@@ -267,8 +295,7 @@
   .pin-key:active { background: var(--surface2); border-color: var(--accent); transform: scale(0.94); }
   .pin-key.del    { font-size: 1.1rem; color: var(--muted); }
   .pin-key.empty  { background: transparent; border-color: transparent; cursor: default; pointer-events: none; }
-
-  .pin-error-msg { font-size: 0.78rem; color: var(--out); text-align: center; min-height: 1.2em; letter-spacing: 0.04em; }
+  .pin-error-msg  { font-size: 0.78rem; color: var(--out); text-align: center; min-height: 1.2em; letter-spacing: 0.04em; }
 
 </style>
 </head>
@@ -302,39 +329,60 @@
   </div>
 </div>
 
-<!-- MAIN APP -->
-<header>
-  <span class="ship-icon">🚢</span>
-  <h1>Control de Tripulación</h1>
-  <div class="subtitle">Toca una tarjeta para cambiar el estado</div>
-  <div id="admin-badge" onclick="exitAdmin()">🎖️ Capitán · Salir</div>
-</header>
+<!-- ══ PANTALLA PRINCIPAL ══════════════════════════════════ -->
+<div id="screen-main" class="screen active">
+  <header>
+    <span class="ship-icon">🚢</span>
+    <h1>Control de Tripulación</h1>
+    <div class="subtitle">Toca una tarjeta para cambiar el estado</div>
+    <div id="admin-badge" onclick="exitAdmin()">🎖️ Capitán · Salir</div>
+  </header>
 
-<div class="stats">
-  <div class="stat">
-    <span class="stat-num aboard" id="count-aboard">0</span>
-    <span class="stat-label">A bordo</span>
+  <div class="stats">
+    <div class="stat">
+      <span class="stat-num aboard" id="count-aboard">0</span>
+      <span class="stat-label">A bordo</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num out" id="count-out">0</span>
+      <span class="stat-label">En tierra</span>
+    </div>
   </div>
-  <div class="stat">
-    <span class="stat-num out" id="count-out">0</span>
-    <span class="stat-label">En tierra</span>
-  </div>
+
+  <button id="log-btn" onclick="showLog()">📋 Ver Registro de Movimientos</button>
+
+  <div class="section-title" id="section-out-label">En tierra</div>
+  <div class="grid" id="grid-out"></div>
+
+  <div class="section-title" id="section-aboard-label" style="margin-top:24px">A bordo</div>
+  <div class="grid" id="grid-aboard"></div>
+
+  <div class="section-title" id="section-unknown-label" style="margin-top:24px">Sin confirmar</div>
+  <div class="grid" id="grid-unknown"></div>
 </div>
 
-<div class="section-title" id="section-out-label">En tierra</div>
-<div class="grid" id="grid-out"></div>
+<!-- ══ PANTALLA REGISTRO ═══════════════════════════════════ -->
+<div id="screen-log" class="screen">
+  <div class="log-topbar">
+    <button class="back-btn" onclick="showMain()">← Volver</button>
+    <span class="log-topbar-title">📋 Registro</span>
+    <button class="export-btn" onclick="exportCSV()">⬇ CSV</button>
+  </div>
 
-<div class="section-title" id="section-aboard-label" style="margin-top:24px">A bordo</div>
-<div class="grid" id="grid-aboard"></div>
+  <div class="log-filters" id="log-filters">
+    <button class="filter-btn active" data-filter="all"    onclick="setFilter('all')">Todos</button>
+    <button class="filter-btn"        data-filter="aboard" onclick="setFilter('aboard')">A bordo</button>
+    <button class="filter-btn"        data-filter="out"    onclick="setFilter('out')">En tierra</button>
+  </div>
 
-<div class="section-title" id="section-unknown-label" style="margin-top:24px">Sin confirmar</div>
-<div class="grid" id="grid-unknown"></div>
+  <div class="log-list" id="log-list"></div>
+</div>
 
 
 <!-- PIN logic -->
 <script>
-const PIN_CREW    = '2009'; // ← PIN general tripulación
-const PIN_CAPTAIN = '0302'; // ← PIN del Capitán
+const PIN_CREW    = '2009';
+const PIN_CAPTAIN = '0302';
 const PIN_SESSION = 'barco_pin_ok';
 const ADMIN_SESSION = 'barco_admin_ok';
 
@@ -374,12 +422,11 @@ function checkPin() {
     document.getElementById('pin-overlay').style.display = 'none';
   } else {
     const dots = document.querySelectorAll('.pin-dot');
-    dots.forEach(d => { d.classList.remove('filled', 'admin'); d.classList.add('error'); });
+    dots.forEach(d => { d.classList.remove('filled','admin'); d.classList.add('error'); });
     document.getElementById('pin-error').textContent = 'PIN incorrecto, inténtalo de nuevo';
     setTimeout(() => {
       dots.forEach(d => d.classList.remove('error'));
-      pinEntry = '';
-      updateDots();
+      pinEntry = ''; updateDots();
       document.getElementById('pin-error').textContent = '';
     }, 900);
   }
@@ -394,26 +441,37 @@ function exitAdmin() {
   sessionStorage.removeItem(ADMIN_SESSION);
   document.body.classList.remove('admin-mode');
   document.getElementById('admin-badge').classList.remove('visible');
+  showMain();
 }
 
-// Teclado físico
 document.addEventListener('keydown', e => {
   if (document.getElementById('pin-overlay').style.display === 'none') return;
   if (e.key >= '0' && e.key <= '9') pinPress(e.key);
   if (e.key === 'Backspace') pinDel();
 });
 
-// Restaurar sesión
 if (sessionStorage.getItem(PIN_SESSION)) {
   document.getElementById('pin-overlay').style.display = 'none';
   if (sessionStorage.getItem(ADMIN_SESSION)) activateAdmin();
+}
+
+// ── Navegación entre pantallas ────────────────────────────
+function showMain() {
+  document.getElementById('screen-main').classList.add('active');
+  document.getElementById('screen-log').classList.remove('active');
+}
+
+function showLog() {
+  document.getElementById('screen-main').classList.remove('active');
+  document.getElementById('screen-log').classList.add('active');
+  renderLog();
 }
 </script>
 
 <!-- Firebase + App logic -->
 <script type="module">
-import { initializeApp }                  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getDatabase, ref, onValue, set } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+import { initializeApp }                        from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, onValue, set, push } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
 const firebaseConfig = {
   apiKey:            "AIzaSyDY0VwMXFhNCa9eN4fGchGw0e6FpDA5kOE",
@@ -428,34 +486,61 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
-// ── Tripulación — cambia los teléfonos cuando quieras ─────────
+// ── Tripulación ───────────────────────────────────────────────
 const CREW = [
-  { id: 1,  name: "CESAR",   role: "Puente",    phone: "696254606" },
-  { id: 2,  name: "SERGIO",  role: "Puente",    phone: "699002908" },
-  { id: 3,  name: "SAUL",    role: "Puente",    phone: "608076979" },
-  { id: 4,  name: "DANI",    role: "Máquinas",  phone: "667789905" },
-  { id: 5,  name: "ANTON",   role: "Máquinas",  phone: "679568104" },
-  { id: 6,  name: "JUAN A.", role: "Cubierta",  phone: "699632696" },
-  { id: 7,  name: "MESURA",  role: "Cubierta",  phone: "619751187" },
-  { id: 8,  name: "NURIA",   role: "Cubierta",  phone: "679193330" },
-  { id: 9,  name: "ADELINO", role: "Sistemas",  phone: "695301692" },
-  { id: 10, name: "TOÑO",    role: "Máquinas",  phone: "673488002" },
-  { id: 11, name: "DAVID",   role: "Cubierta",  phone: "669642643" },
+  { id: 1,  name: "CESAR",   role: "Puente",   phone: "600000001" },
+  { id: 2,  name: "SERGIO",  role: "Puente",   phone: "600000002" },
+  { id: 3,  name: "SAUL",    role: "Puente",   phone: "600000003" },
+  { id: 4,  name: "DANI",    role: "Máquinas", phone: "600000004" },
+  { id: 5,  name: "ANTON",   role: "Máquinas", phone: "600000005" },
+  { id: 6,  name: "JUAN A.", role: "Cubierta", phone: "600000006" },
+  { id: 7,  name: "MESURA",  role: "Cubierta", phone: "600000007" },
+  { id: 8,  name: "NURIA",   role: "Cubierta", phone: "600000008" },
+  { id: 9,  name: "ADELINO", role: "Sistemas", phone: "600000009" },
+  { id: 10, name: "TOÑO",    role: "Máquinas", phone: "600000010" },
+  { id: 11, name: "DAVID",   role: "Servicio", phone: "600000011" },
 ];
 
-let statuses = {};
+let statuses  = {};
+let logEntries = [];
+let logFilter  = 'all';
 
+// ── Estado actual ─────────────────────────────────────────────
 onValue(ref(db, 'crew'), snapshot => {
   statuses = snapshot.val() || {};
   renderAll();
 });
 
+// ── Registro de movimientos ───────────────────────────────────
+onValue(ref(db, 'log'), snapshot => {
+  const data = snapshot.val() || {};
+  logEntries = Object.values(data).sort((a, b) => b.ts - a.ts);
+  renderLog();
+});
+
+// ── Cambiar estado + guardar en log ──────────────────────────
 function setStatus(id, status) {
-  const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  const member = CREW.find(c => c.id === id);
+  const now    = new Date();
+  const time   = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  const date   = now.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+  // Actualizar estado actual
   set(ref(db, `crew/${id}`), { status, time });
+
+  // Guardar entrada en el log
+  push(ref(db, 'log'), {
+    name:   member.name,
+    role:   member.role,
+    status,
+    time,
+    date,
+    ts: now.getTime()
+  });
 }
 window.setStatus = setStatus;
 
+// ── Renderizar tarjetas ───────────────────────────────────────
 function makeCard(c) {
   const s      = statuses[c.id];
   const status = s ? s.status : 'unknown';
@@ -480,7 +565,6 @@ function renderAll() {
   const outEl     = document.getElementById('grid-out');
   const unknownEl = document.getElementById('grid-unknown');
   aboardEl.innerHTML = outEl.innerHTML = unknownEl.innerHTML = '';
-
   let countAboard = 0, countOut = 0;
 
   CREW.forEach(c => {
@@ -493,16 +577,70 @@ function renderAll() {
 
   document.getElementById('count-aboard').textContent = countAboard;
   document.getElementById('count-out').textContent    = countOut;
-
   document.getElementById('section-aboard-label').style.display  = aboardEl.children.length  ? '' : 'none';
   document.getElementById('section-out-label').style.display     = outEl.children.length     ? '' : 'none';
   document.getElementById('section-unknown-label').style.display = unknownEl.children.length ? '' : 'none';
 }
 
-// PWA Service Worker
+// ── Renderizar log ────────────────────────────────────────────
+function renderLog() {
+  const list = document.getElementById('log-list');
+  const filtered = logFilter === 'all' ? logEntries : logEntries.filter(e => e.status === logFilter);
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="log-empty"><span class="log-empty-icon">📋</span>No hay movimientos registrados aún</div>`;
+    return;
+  }
+
+  list.innerHTML = '';
+  filtered.forEach(e => {
+    const div = document.createElement('div');
+    div.className = 'log-entry';
+    div.innerHTML = `
+      <div class="log-entry-dot ${e.status}"></div>
+      <div class="log-entry-info">
+        <div class="log-entry-name">${e.name}</div>
+        <div class="log-entry-role">${e.role}</div>
+      </div>
+      <div class="log-entry-right">
+        <div class="log-entry-status ${e.status}">${e.status === 'aboard' ? 'A bordo' : 'En tierra'}</div>
+        <div class="log-entry-datetime">${e.date} · ${e.time}</div>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+window.renderLog = renderLog;
+
+// ── Filtros ───────────────────────────────────────────────────
+window.setFilter = function(filter) {
+  logFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.filter === filter);
+  });
+  renderLog();
+};
+
+// ── Exportar CSV ──────────────────────────────────────────────
+window.exportCSV = function() {
+  if (logEntries.length === 0) { alert('No hay datos para exportar'); return; }
+  const header = 'Nombre,Rol,Estado,Fecha,Hora';
+  const rows = logEntries.map(e =>
+    `"${e.name}","${e.role}","${e.status === 'aboard' ? 'A bordo' : 'En tierra'}","${e.date}","${e.time}"`
+  );
+  const csv  = [header, ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `registro-tripulacion-${new Date().toLocaleDateString('es-ES').replace(/\//g,'-')}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+// ── PWA Service Worker ────────────────────────────────────────
 if ('serviceWorker' in navigator) {
   const swCode = `
-    const CACHE = 'tripulacion-v2';
+    const CACHE = 'tripulacion-v3';
     self.addEventListener('install', e => { self.skipWaiting(); });
     self.addEventListener('fetch', e => {
       if (e.request.url.includes('firebasedatabase')) return;
@@ -511,7 +649,7 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register(URL.createObjectURL(new Blob([swCode], { type: 'application/javascript' }))).catch(() => {});
 }
 
-// Banner instalación Android
+// ── Banner instalación Android ────────────────────────────────
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault(); deferredPrompt = e;
