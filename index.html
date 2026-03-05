@@ -795,7 +795,7 @@ const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
 // ── Tripulación ───────────────────────────────────────────────
-const CREW = [
+const CREW = window.CREW = [
   { id: 1,  name: "CESAR",   role: "Puente",   phone: "600000001" },
   { id: 2,  name: "SERGIO",  role: "Puente",   phone: "600000002" },
   { id: 3,  name: "SAUL",    role: "Puente",   phone: "600000003" },
