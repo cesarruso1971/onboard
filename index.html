@@ -1034,7 +1034,10 @@ window.openEditCrew = function(id) {
     <div><div class="edit-modal-label">Rol</div>
       <input class="edit-field-input" id="ef-role"  value="${c.role}"  placeholder="Rol"></div>
     <div><div class="edit-modal-label">Teléfono</div>
-      <input class="edit-field-input" id="ef-phone" value="${c.phone || ''}" placeholder="600000000" type="tel"></div>`;
+      <div style="display:flex;gap:8px;align-items:center">
+        <input class="edit-field-input" id="ef-phone" value="${c.phone || ''}" placeholder="600000000" type="tel" style="flex:1">
+        ${('contacts' in navigator && 'ContactsManager' in window) ? '<button type="button" class="edit-btn" onclick="pickContact()" style="flex-shrink:0;padding:10px 12px">📒</button>' : ''}
+      </div></div>`;
   document.getElementById('edit-modal').classList.add('open');
 };
 
@@ -1047,7 +1050,10 @@ window.openAddCrew = function() {
     <div><div class="edit-modal-label">Rol</div>
       <input class="edit-field-input" id="ef-role"  value="" placeholder="Puente, Máquinas..."></div>
     <div><div class="edit-modal-label">Teléfono</div>
-      <input class="edit-field-input" id="ef-phone" value="" placeholder="600000000" type="tel"></div>`;
+      <div style="display:flex;gap:8px;align-items:center">
+        <input class="edit-field-input" id="ef-phone" value="" placeholder="600000000" type="tel" style="flex:1">
+        ${('contacts' in navigator && 'ContactsManager' in window) ? '<button type="button" class="edit-btn" onclick="pickContact()" style="flex-shrink:0;padding:10px 12px">📒</button>' : ''}
+      </div></div>`;
   document.getElementById('edit-modal').classList.add('open');
 };
 
@@ -1072,6 +1078,30 @@ window.openEditPin = function(type) {
 window.closeEditModal = function() {
   document.getElementById('edit-modal').classList.remove('open');
   editingCrewId = null; editModalMode = null;
+};
+
+window.pickContact = async function() {
+  if (!('contacts' in navigator && 'ContactsManager' in window)) return;
+  try {
+    const contacts = await navigator.contacts.select(['name', 'tel'], { multiple: false });
+    if (!contacts || contacts.length === 0) return;
+    const contact = contacts[0];
+    // Rellenar teléfono
+    if (contact.tel && contact.tel.length > 0) {
+      const phone = contact.tel[0].replace(/\s+/g, '');
+      const input = document.getElementById('ef-phone');
+      if (input) input.value = phone;
+    }
+    // Rellenar nombre si el campo está vacío
+    if (contact.name && contact.name.length > 0) {
+      const nameInput = document.getElementById('ef-name');
+      if (nameInput && !nameInput.value.trim()) {
+        nameInput.value = contact.name[0].toUpperCase();
+      }
+    }
+  } catch (e) {
+    console.warn('Contact picker cancelado o no disponible:', e.message);
+  }
 };
 
 window.saveEditModal = function() {
