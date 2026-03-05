@@ -457,27 +457,25 @@
     display: flex; align-items: center; gap: 12px;
     animation: fadeIn 0.2s ease;
   }
+  .log-entry.pending { border-color: var(--out-dim); }
 
   @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-  .log-entry-dot {
-    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
-  }
-  .log-entry-dot.aboard { background: var(--aboard); box-shadow: 0 0 6px var(--aboard); }
-  .log-entry-dot.out    { background: var(--out);    box-shadow: 0 0 6px var(--out); }
-
   .log-entry-info { flex: 1; min-width: 0; }
   .log-entry-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem; }
-  .log-entry-role { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .log-entry-role { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
 
-  .log-entry-right { text-align: right; flex-shrink: 0; }
-  .log-entry-status {
-    font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.05em; padding: 2px 8px; border-radius: 10px;
+  .log-entry-times {
+    display: flex; gap: 6px; align-items: center; flex-wrap: nowrap;
+    font-size: 0.75rem; margin-top: 4px;
   }
-  .log-entry-status.aboard { background: var(--aboard-dim); color: var(--aboard); }
-  .log-entry-status.out    { background: var(--out-dim);    color: var(--out); }
-  .log-entry-datetime { font-size: 0.65rem; color: var(--muted); margin-top: 3px; }
+  .log-time-sep { color: var(--muted); }
+  .log-time-value { font-family: 'Syne', sans-serif; font-weight: 700; }
+  .log-time-value.out    { color: var(--out); }
+  .log-time-value.aboard { color: var(--aboard); }
+  .log-time-value.pending { color: var(--muted); font-style: italic; font-weight: 400; }
+
+  .log-entry-date { font-size: 0.62rem; color: var(--muted); text-align: right; flex-shrink: 0; align-self: flex-start; margin-top: 2px; }
 
   .log-empty {
     text-align: center; padding: 60px 20px;
@@ -615,7 +613,7 @@
 
   <div class="log-filters" id="log-filters">
     <button class="filter-btn active" data-filter="all"    onclick="setFilter('all')">Todos</button>
-    <button class="filter-btn"        data-filter="aboard" onclick="setFilter('aboard')">A bordo</button>
+    <button class="filter-btn"        data-filter="aboard" onclick="setFilter('aboard')">Completados</button>
     <button class="filter-btn"        data-filter="out"    onclick="setFilter('out')">En tierra</button>
   </div>
 
@@ -724,27 +722,14 @@ function showSettings() {
 }
 
 // ── SMS Modal ─────────────────────────────────────────────────
-const CREW_PHONES = [
-  { name: "CESAR",   phone: "600000001" },
-  { name: "SERGIO",  phone: "600000002" },
-  { name: "SAUL",    phone: "600000003" },
-  { name: "DANI",    phone: "600000004" },
-  { name: "ANTON",   phone: "600000005" },
-  { name: "JUAN A.", phone: "600000006" },
-  { name: "MESURA",  phone: "600000007" },
-  { name: "NURIA",   phone: "600000008" },
-  { name: "ADELINO", phone: "600000009" },
-  { name: "TOÑO",    phone: "600000010" },
-  { name: "DAVID",   phone: "600000011" },
-];
-
-let selectedPhones = new Set(CREW_PHONES.map(c => c.phone));
+let selectedPhones = new Set();
 
 function openSmsModal() {
-  // Construir botones de destinatarios
+  // Usar tripulantes activos desde Firebase
+  const activeCrew = typeof CREW !== 'undefined' ? CREW.filter(c => !c.inactive && c.phone) : [];
   const container = document.getElementById('sms-recipients');
   container.innerHTML = '';
-  CREW_PHONES.forEach(c => {
+  activeCrew.forEach(c => {
     const btn = document.createElement('button');
     btn.className = 'sms-recipient selected';
     btn.dataset.phone = c.phone;
@@ -752,7 +737,7 @@ function openSmsModal() {
     btn.onclick = () => toggleRecipient(btn, c.phone);
     container.appendChild(btn);
   });
-  selectedPhones = new Set(CREW_PHONES.map(c => c.phone));
+  selectedPhones = new Set(activeCrew.map(c => c.phone));
   document.getElementById('sms-modal').classList.add('open');
 }
 
@@ -909,6 +894,7 @@ function renderAll() {
   let countAboard = 0, countOut = 0;
 
   CREW.forEach(c => {
+    if (c.inactive) return; // ocultar inactivos de la pantalla principal
     const s    = statuses[c.id];
     const card = makeCard(c);
     if (!s)                         { unknownEl.appendChild(card); }
@@ -924,9 +910,30 @@ function renderAll() {
 }
 
 // ── Renderizar log ────────────────────────────────────────────
+function buildPairs() {
+  const sorted = [...logEntries].sort((a, b) => a.ts - b.ts);
+  const pairs = [];
+  const pending = {};
+  sorted.forEach(e => {
+    if (e.status === 'out') {
+      pending[e.name] = e;
+    } else if (e.status === 'aboard' && pending[e.name]) {
+      pairs.push({ out: pending[e.name], aboard: e });
+      delete pending[e.name];
+    }
+  });
+  Object.values(pending).forEach(e => pairs.push({ out: e, aboard: null }));
+  return pairs.sort((a, b) => b.out.ts - a.out.ts);
+}
+
 function renderLog() {
   const list = document.getElementById('log-list');
-  const filtered = logFilter === 'all' ? logEntries : logEntries.filter(e => e.status === logFilter);
+  if (!list) return;
+
+  const pairs = buildPairs();
+  let filtered = pairs;
+  if (logFilter === 'out')    filtered = pairs.filter(p => p.aboard === null);
+  if (logFilter === 'aboard') filtered = pairs.filter(p => p.aboard !== null);
 
   if (filtered.length === 0) {
     list.innerHTML = `<div class="log-empty"><span class="log-empty-icon">📋</span>No hay movimientos registrados aún</div>`;
@@ -934,19 +941,24 @@ function renderLog() {
   }
 
   list.innerHTML = '';
-  filtered.forEach(e => {
+  filtered.forEach(pair => {
+    const { out, aboard } = pair;
+    const isPending = aboard === null;
     const div = document.createElement('div');
-    div.className = 'log-entry';
+    div.className = `log-entry${isPending ? ' pending' : ''}`;
     div.innerHTML = `
-      <div class="log-entry-dot ${e.status}"></div>
       <div class="log-entry-info">
-        <div class="log-entry-name">${e.name}</div>
-        <div class="log-entry-role">${e.role}</div>
+        <div class="log-entry-name">${out.name}</div>
+        <div class="log-entry-role">${out.role}</div>
+        <div class="log-entry-times">
+          <span class="log-time-sep">Salida</span>
+          <span class="log-time-value out">${out.time}</span>
+          <span class="log-time-sep">·</span>
+          <span class="log-time-sep">Vuelta</span>
+          <span class="log-time-value ${isPending ? 'pending' : 'aboard'}">${isPending ? 'En tierra' : aboard.time}</span>
+        </div>
       </div>
-      <div class="log-entry-right">
-        <div class="log-entry-status ${e.status}">${e.status === 'aboard' ? 'A bordo' : 'En tierra'}</div>
-        <div class="log-entry-datetime">${e.date} · ${e.time}</div>
-      </div>`;
+      <div class="log-entry-date">${out.date}</div>`;
     list.appendChild(div);
   });
 }
@@ -964,9 +976,10 @@ window.setFilter = function(filter) {
 // ── Exportar CSV ──────────────────────────────────────────────
 window.exportCSV = function() {
   if (logEntries.length === 0) { alert('No hay datos para exportar'); return; }
-  const header = 'Nombre,Rol,Estado,Fecha,Hora';
-  const rows = logEntries.map(e =>
-    `"${e.name}","${e.role}","${e.status === 'aboard' ? 'A bordo' : 'En tierra'}","${e.date}","${e.time}"`
+  const pairs = buildPairs();
+  const header = 'Nombre,Rol,Fecha,Hora salida,Hora vuelta';
+  const rows = pairs.map(p =>
+    `"${p.out.name}","${p.out.role}","${p.out.date}","${p.out.time}","${p.aboard ? p.aboard.time : 'En tierra'}"`
   );
   const csv  = [header, ...rows].join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -1005,20 +1018,47 @@ function renderCrewEdit() {
   const list = document.getElementById('crew-edit-list');
   if (!list) return;
   list.innerHTML = '';
-  CREW.forEach(c => {
+
+  const active   = CREW.filter(c => !c.inactive);
+  const inactive = CREW.filter(c => c.inactive);
+
+  active.forEach(c => {
     const div = document.createElement('div');
     div.className = 'crew-edit-card';
     div.innerHTML = `
       <div class="crew-edit-info">
         <div class="crew-edit-name">${c.name}</div>
-        <div class="crew-edit-detail">${c.role} · 📞 ${c.phone || 'Sin teléfono'}</div>
+        <div class="crew-edit-detail">${c.role} · ${c.phone || 'Sin teléfono'}</div>
       </div>
       <div class="crew-edit-actions">
         <button class="edit-btn"   onclick="openEditCrew(${c.id})">✏️</button>
-        <button class="delete-btn" onclick="deleteCrew(${c.id})">🗑️</button>
+        <button class="delete-btn" onclick="deleteCrew(${c.id})">Desactivar</button>
       </div>`;
     list.appendChild(div);
   });
+
+  if (inactive.length > 0) {
+    const sep = document.createElement('div');
+    sep.className = 'settings-section-title';
+    sep.style.marginTop = '18px';
+    sep.innerHTML = 'Inactivos';
+    list.appendChild(sep);
+
+    inactive.forEach(c => {
+      const div = document.createElement('div');
+      div.className = 'crew-edit-card';
+      div.style.opacity = '0.55';
+      div.innerHTML = `
+        <div class="crew-edit-info">
+          <div class="crew-edit-name">${c.name}</div>
+          <div class="crew-edit-detail">${c.role} · ${c.phone || 'Sin teléfono'}</div>
+        </div>
+        <div class="crew-edit-actions">
+          <button class="edit-btn" onclick="reactivateCrew(${c.id})">Reactivar</button>
+        </div>`;
+      list.appendChild(div);
+    });
+  }
 }
 window.renderCrewEdit = renderCrewEdit;
 window.renderPinDisplay = function() {};
@@ -1058,9 +1098,12 @@ window.openAddCrew = function() {
 };
 
 window.deleteCrew = function(id) {
-  if (!confirm('¿Eliminar este tripulante?')) return;
-  set(ref(db, `crewList/${id}`), null);
-  set(ref(db, `crew/${id}`), null);
+  if (!confirm('¿Desactivar este tripulante? Podrás reactivarlo más adelante.')) return;
+  set(ref(db, `crewList/${id}/inactive`), true);
+};
+
+window.reactivateCrew = function(id) {
+  set(ref(db, `crewList/${id}/inactive`), null);
 };
 
 window.openEditPin = function(type) {
