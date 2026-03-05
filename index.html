@@ -724,8 +724,8 @@ function showLog() {
 
 // ── SMS Modal ─────────────────────────────────────────────────
 const CREW_PHONES = [
-  { name: "CESAR",   phone: "606745192" },
-  { name: "SERGIO",  phone: "696254606" },
+  { name: "CESAR",   phone: "600000001" },
+  { name: "SERGIO",  phone: "600000002" },
   { name: "SAUL",    phone: "600000003" },
   { name: "DANI",    phone: "600000004" },
   { name: "ANTON",   phone: "600000005" },
@@ -804,11 +804,15 @@ async function initPush() {
     const data = await res.json();
     vapidPublicKey = data.key;
 
-    const reg = await navigator.serviceWorker.ready;
+    // Esperar a que el SW esté registrado y activo
+    const reg = await navigator.serviceWorker.register('/sw.js');
+    await navigator.serviceWorker.ready;
     pushSubscription = await reg.pushManager.getSubscription();
     updatePushStatus();
   } catch (e) {
-    console.warn('Push server no disponible:', e.message);
+    console.warn('Push init error:', e.message);
+    // Mostrar botón igualmente para que puedan suscribirse
+    updatePushStatus();
   }
 }
 
@@ -939,8 +943,8 @@ const db  = getDatabase(app);
 
 // ── Tripulación ───────────────────────────────────────────────
 const CREW = [
-  { id: 1,  name: "CESAR",   role: "Puente",   phone: "606745192" },
-  { id: 2,  name: "SERGIO",  role: "Puente",   phone: "696254606" },
+  { id: 1,  name: "CESAR",   role: "Puente",   phone: "600000001" },
+  { id: 2,  name: "SERGIO",  role: "Puente",   phone: "600000002" },
   { id: 3,  name: "SAUL",    role: "Puente",   phone: "600000003" },
   { id: 4,  name: "DANI",    role: "Máquinas", phone: "600000004" },
   { id: 5,  name: "ANTON",   role: "Máquinas", phone: "600000005" },
@@ -1090,30 +1094,7 @@ window.exportCSV = function() {
 
 // ── PWA Service Worker ────────────────────────────────────────
 if ('serviceWorker' in navigator) {
-  const swCode = `
-    const CACHE = 'tripulacion-v3';
-    self.addEventListener('install', e => { self.skipWaiting(); });
-    self.addEventListener('fetch', e => {
-      if (e.request.url.includes('firebasedatabase')) return;
-      e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
-    });
-    self.addEventListener('push', e => {
-      const data = e.data ? e.data.json() : { title: 'Aviso', body: 'Nuevo mensaje del Capitán' };
-      e.waitUntil(self.registration.showNotification(data.title, {
-        body:      data.body,
-        icon:      data.icon  || '/icon-192.png',
-        badge:     data.badge || '/icon-192.png',
-        vibrate:   [200, 100, 200],
-        timestamp: data.timestamp || Date.now(),
-        requireInteraction: true
-      }));
-    });
-    self.addEventListener('notificationclick', e => {
-      e.notification.close();
-      e.waitUntil(clients.openWindow('/'));
-    });
-  `;
-  navigator.serviceWorker.register(URL.createObjectURL(new Blob([swCode], { type: 'application/javascript' }))).catch(() => {});
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
 }
 
 // ── Banner instalación Android ────────────────────────────────
