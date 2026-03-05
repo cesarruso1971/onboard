@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Control de Tripulación</title>
+<meta name="description" content="Control de tripulación a bordo en tiempo real">
+<meta name="theme-color" content="#060d18">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tripulación">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="Tripulación">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23060d18'/><text y='72' x='50' text-anchor='middle' font-size='60'>🚢</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23060d18'/><text y='72' x='50' text-anchor='middle' font-size='60'>🚢</text></svg>">
+<script>
+  const manifest = {
+    name: "Control de Tripulación", short_name: "Tripulación",
+    start_url: "./", display: "standalone",
+    background_color: "#060d18", theme_color: "#060d18", orientation: "portrait",
+    icons: [{ src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23060d18'/><text y='72' x='50' text-anchor='middle' font-size='60'>🚢</text></svg>", sizes: "192x192", type: "image/svg+xml" }]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+  document.write('<link rel="manifest" href="' + URL.createObjectURL(blob) + '">');
+</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #060d18;
+    --surface: #0d1f35;
+    --surface2: #122640;
+    --aboard: #38bdf8;
+    --aboard-dim: #0c4a6e;
+    --out: #f97316;
+    --out-dim: #7c2d12;
+    --text: #e8f4fd;
+    --muted: #4d7fa8;
+    --border: #1a3a5c;
+    --accent: #fbbf24;
+    --admin: #a78bfa;
+    --admin-dim: #2e1065;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; overflow-x: hidden;
+    background-image:
+      radial-gradient(ellipse at 50% 0%, #0a2a4a88 0%, transparent 60%),
+      repeating-linear-gradient(0deg, transparent, transparent 40px, #0a1f3308 41px),
+      repeating-linear-gradient(90deg, transparent, transparent 40px, #0a1f3308 41px);
+  }
+
+  /* ── SCREENS ─────────────────────────────── */
+  .screen { display: none; min-height: 100vh; padding-bottom: 60px; }
+  .screen.active { display: block; }
+
+  /* ── HEADER ──────────────────────────────── */
+  header {
+    position: relative; padding: 24px 24px 20px; text-align: center;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #0a2a4a 0%, transparent 100%);
+  }
+  .ship-icon { font-size: 2rem; display: block; margin-bottom: 6px; filter: drop-shadow(0 0 16px #38bdf855); }
+  header h1 {
+    font-family: 'Syne', sans-serif; font-size: clamp(1.3rem, 4.5vw, 2rem);
+    font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;
+    background: linear-gradient(135deg, #fff 20%, var(--accent) 60%, var(--aboard));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .subtitle { margin-top: 6px; font-size: 0.8rem; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
+
+  #admin-badge {
+    display: none; position: absolute; top: 16px; right: 16px;
+    background: var(--admin-dim); border: 1px solid var(--admin); color: var(--admin);
+    font-size: 0.68rem; font-family: 'Syne', sans-serif; font-weight: 700;
+    border-radius: 8px; padding: 5px 10px; text-transform: uppercase;
+    letter-spacing: 0.06em; cursor: pointer;
+  }
+  #admin-badge.visible { display: block; }
+
+  /* ── LOG BUTTON (solo admin) ─────────────── */
+  #log-btn {
+    display: none;
+    margin: 16px 12px 0;
+    width: calc(100% - 24px);
+    padding: 13px;
+    background: var(--admin-dim);
+    border: 1px solid var(--admin);
+    border-radius: 12px;
+    color: var(--admin);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  #log-btn:hover { background: var(--admin); color: #000; }
+  body.admin-mode #log-btn { display: block; }
+
+  #sms-btn {
+    display: none;
+    margin: 8px 12px 0;
+    width: calc(100% - 24px);
+    padding: 13px;
+    background: var(--surface);
+    border: 1px solid #166534;
+    border-radius: 12px;
+    color: #4ade80;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  #sms-btn:hover { background: #166534; color: #fff; }
+  body.admin-mode #sms-btn { display: block; }
+
+  #notify-btn {
+    display: none;
+    margin: 8px 12px 0;
+    width: calc(100% - 24px);
+    padding: 13px;
+    background: var(--surface);
+    border: 1px solid var(--aboard-dim);
+    border-radius: 12px;
+    color: var(--aboard);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  #notify-btn:hover { background: var(--aboard-dim); }
+  body.admin-mode #notify-btn { display: block; }
+
+  /* NOTIFY MODAL */
+  #notify-modal {
+    display: none;
+    position: fixed; inset: 0; z-index: 200;
+    background: #00000088;
+    backdrop-filter: blur(4px);
+    align-items: flex-end;
+    justify-content: center;
+    padding: 16px;
+  }
+  #notify-modal.open { display: flex; }
+
+  .notify-modal-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px 20px;
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    animation: slideUp 0.25s ease;
+  }
+
+  .notify-modal-title {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: 1rem; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+
+  .notify-modal-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+
+  .notify-input {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 11px 12px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+    outline: none; width: 100%; transition: border-color 0.2s;
+  }
+  .notify-input:focus { border-color: var(--aboard); }
+
+  .notify-textarea {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 11px 12px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+    resize: none; min-height: 80px; outline: none; width: 100%;
+    transition: border-color 0.2s;
+  }
+  .notify-textarea:focus { border-color: var(--aboard); }
+
+  .notify-modal-btns { display: flex; gap: 8px; }
+
+  .notify-cancel {
+    flex: 1; padding: 12px; border-radius: 10px;
+    background: transparent; border: 1px solid var(--border);
+    color: var(--muted); font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 0.82rem; cursor: pointer; transition: all 0.18s;
+  }
+  .notify-cancel:hover { border-color: var(--text); color: var(--text); }
+
+  .notify-send {
+    flex: 2; padding: 12px; border-radius: 10px;
+    background: var(--aboard-dim); border: 1px solid var(--aboard);
+    color: var(--aboard); font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 0.82rem; cursor: pointer;
+    transition: all 0.18s; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .notify-send:hover { background: var(--aboard); color: #000; }
+  .notify-send:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .notify-status {
+    font-size: 0.78rem; text-align: center; min-height: 1.2em;
+    padding: 6px; border-radius: 8px;
+  }
+  .notify-status.ok    { background: #14532d; color: #4ade80; }
+  .notify-status.error { background: var(--out-dim); color: var(--out); }
+
+  /* Indicador de suscripción */
+  #push-status {
+    display: none;
+    margin: 8px 12px 0;
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-size: 0.72rem;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  #push-status.subscribed   { background: #14532d; color: #4ade80; border: 1px solid #166534; }
+  #push-status.unsubscribed { background: var(--surface); color: var(--muted); border: 1px solid var(--border); cursor: pointer; }
+  #push-status.visible { display: block; }
+
+  /* SMS MODAL */
+  #sms-modal {
+    display: none;
+    position: fixed; inset: 0; z-index: 200;
+    background: #00000088;
+    backdrop-filter: blur(4px);
+    align-items: flex-end;
+    justify-content: center;
+    padding: 16px;
+  }
+  #sms-modal.open { display: flex; }
+
+  .sms-modal-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px 20px;
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    animation: slideUp 0.25s ease;
+  }
+
+  @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .sms-modal-title {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: 1rem; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+
+  .sms-modal-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  .sms-recipients {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+
+  .sms-recipient {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 4px 10px;
+    font-size: 0.72rem; font-family: 'Syne', sans-serif; font-weight: 700;
+    color: var(--text); cursor: pointer; transition: all 0.15s;
+    display: flex; align-items: center; gap: 5px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .sms-recipient.selected { background: #166534; border-color: #4ade80; color: #4ade80; }
+
+  .sms-textarea {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+    resize: none; min-height: 90px; outline: none; width: 100%;
+    transition: border-color 0.2s;
+  }
+  .sms-textarea:focus { border-color: var(--accent); }
+
+  .sms-modal-btns { display: flex; gap: 8px; }
+
+  .sms-cancel {
+    flex: 1; padding: 12px; border-radius: 10px;
+    background: transparent; border: 1px solid var(--border);
+    color: var(--muted); font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 0.82rem; cursor: pointer;
+    transition: all 0.18s;
+  }
+  .sms-cancel:hover { border-color: var(--text); color: var(--text); }
+
+  .sms-send {
+    flex: 2; padding: 12px; border-radius: 10px;
+    background: #166534; border: 1px solid #4ade80;
+    color: #4ade80; font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 0.82rem; cursor: pointer;
+    transition: all 0.18s; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .sms-send:hover { background: #4ade80; color: #000; }
+
+  /* ── STICKY STATS ────────────────────────── */
+  .stats {
+    display: flex; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 50;
+    background: var(--bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  }
+  .stat { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 8px; border-right: 1px solid var(--border); }
+  .stat:last-child { border-right: none; }
+  .stat-num { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; line-height: 1; }
+  .stat-num.aboard { color: var(--aboard); text-shadow: 0 0 20px #38bdf855; }
+  .stat-num.out    { color: var(--out);    text-shadow: 0 0 20px #f9731655; }
+  .stat-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+
+  /* ── SECTION TITLES ──────────────────────── */
+  .section-title {
+    font-family: 'Syne', sans-serif; font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted);
+    padding: 0 18px; margin: 22px 0 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* ── GRID ────────────────────────────────── */
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 0 12px; }
+
+  /* ── CARD ────────────────────────────────── */
+  .card {
+    border-radius: 14px; padding: 16px 12px 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    display: flex; flex-direction: column; align-items: center;
+    gap: 5px; transition: all 0.3s ease; position: relative; overflow: hidden; cursor: default;
+  }
+  .card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    border-radius: 14px 14px 0 0; transition: background 0.3s;
+  }
+  .card.aboard::before { background: var(--aboard); box-shadow: 0 0 10px var(--aboard); }
+  .card.out::before    { background: var(--out);    box-shadow: 0 0 10px var(--out); }
+  .card.unknown::before { background: var(--muted); }
+  .card.aboard { border-color: #166534; background: linear-gradient(160deg, #14532d 0%, #166534 100%); }
+  .card.out    { border-color: #991b1b; background: linear-gradient(160deg, #7f1d1d 0%, #991b1b 100%); }
+
+  .card-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.88rem; text-align: center; color: var(--text); line-height: 1.2; }
+  .card-role { font-size: 0.65rem; color: var(--muted); text-align: center; text-transform: uppercase; letter-spacing: 0.05em; }
+  .card-time { font-size: 0.62rem; color: var(--muted); }
+
+  .card-phone {
+    display: none; align-items: center; gap: 5px;
+    background: var(--admin-dim); border: 1px solid var(--admin);
+    border-radius: 8px; padding: 6px 10px; text-decoration: none;
+    color: var(--admin); font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 0.72rem; letter-spacing: 0.04em; transition: all 0.18s;
+    -webkit-tap-highlight-color: transparent; width: 100%; justify-content: center; margin-top: 2px;
+  }
+  .card-phone:hover, .card-phone:active { background: var(--admin); color: #000; box-shadow: 0 0 12px #a78bfa55; }
+  body.admin-mode .card-phone { display: flex; }
+
+  .card-btns { display: flex; gap: 5px; width: 100%; margin-top: 4px; }
+  .card-btn {
+    flex: 1; padding: 10px 4px; min-height: 44px; border-radius: 8px;
+    border: 1.5px solid transparent; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.68rem;
+    text-transform: uppercase; letter-spacing: 0.04em; transition: all 0.18s;
+    display: flex; align-items: center; justify-content: center; gap: 3px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .card-btn.aboard-btn { background: var(--aboard-dim); color: var(--aboard); border-color: var(--aboard-dim); }
+  .card-btn.aboard-btn:hover, .card-btn.aboard-btn.active { background: var(--aboard); color: #000; border-color: var(--aboard); box-shadow: 0 0 12px #38bdf844; }
+  .card-btn.out-btn { background: var(--out-dim); color: var(--out); border-color: var(--out-dim); }
+  .card-btn.out-btn:hover, .card-btn.out-btn.active { background: var(--out); color: #000; border-color: var(--out); box-shadow: 0 0 12px #f9731644; }
+
+  /* ── LOG SCREEN ──────────────────────────── */
+  #screen-log header { padding: 20px 24px 16px; }
+
+  .log-topbar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 50;
+    background: var(--bg); backdrop-filter: blur(12px);
+  }
+
+  .back-btn {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); border-radius: 10px; padding: 8px 14px;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.78rem;
+    cursor: pointer; transition: all 0.18s; white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .back-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .log-topbar-title {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1rem;
+    text-transform: uppercase; letter-spacing: 0.06em; flex: 1;
+  }
+
+  .export-btn {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--accent); border-radius: 10px; padding: 8px 14px;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.78rem;
+    cursor: pointer; transition: all 0.18s; white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .export-btn:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+
+  /* Filtros */
+  .log-filters {
+    display: flex; gap: 8px; padding: 12px 14px; overflow-x: auto;
+    border-bottom: 1px solid var(--border);
+    scrollbar-width: none;
+  }
+  .log-filters::-webkit-scrollbar { display: none; }
+
+  .filter-btn {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--muted); border-radius: 20px; padding: 6px 14px;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer;
+    transition: all 0.18s; white-space: nowrap; flex-shrink: 0;
+  }
+  .filter-btn.active { background: var(--surface2); border-color: var(--accent); color: var(--accent); }
+
+  /* Entradas del log */
+  .log-list { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+
+  .log-entry {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 14px;
+    display: flex; align-items: center; gap: 12px;
+    animation: fadeIn 0.2s ease;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  .log-entry-dot {
+    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  }
+  .log-entry-dot.aboard { background: var(--aboard); box-shadow: 0 0 6px var(--aboard); }
+  .log-entry-dot.out    { background: var(--out);    box-shadow: 0 0 6px var(--out); }
+
+  .log-entry-info { flex: 1; min-width: 0; }
+  .log-entry-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem; }
+  .log-entry-role { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+
+  .log-entry-right { text-align: right; flex-shrink: 0; }
+  .log-entry-status {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.05em; padding: 2px 8px; border-radius: 10px;
+  }
+  .log-entry-status.aboard { background: var(--aboard-dim); color: var(--aboard); }
+  .log-entry-status.out    { background: var(--out-dim);    color: var(--out); }
+  .log-entry-datetime { font-size: 0.65rem; color: var(--muted); margin-top: 3px; }
+
+  .log-empty {
+    text-align: center; padding: 60px 20px;
+    color: var(--muted); font-size: 0.85rem;
+  }
+  .log-empty-icon { font-size: 2.5rem; display: block; margin-bottom: 12px; }
+
+  /* ── PIN OVERLAY ─────────────────────────── */
+  #pin-overlay {
+    position: fixed; inset: 0; background: var(--bg);
+    background-image: radial-gradient(ellipse at 50% 30%, #0a2a4a 0%, transparent 70%);
+    z-index: 300; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 28px; padding: 32px;
+  }
+  #pin-overlay .ship-icon { font-size: 3rem; margin-bottom: 0; }
+  #pin-overlay h2 {
+    font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.06em; text-align: center;
+    background: linear-gradient(135deg, #fff 20%, var(--accent));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  #pin-subtitle { font-size: 0.82rem; color: var(--muted); text-align: center; }
+  .pin-dots { display: flex; gap: 14px; justify-content: center; }
+  .pin-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border); background: transparent; transition: all 0.2s; }
+  .pin-dot.filled { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 10px #fbbf2466; }
+  .pin-dot.filled.admin { background: var(--admin); border-color: var(--admin); box-shadow: 0 0 10px #a78bfa66; }
+  .pin-dot.error  { background: var(--out); border-color: var(--out); animation: shake 0.4s ease; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+  .pin-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; max-width: 280px; }
+  .pin-key {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    color: var(--text); font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 700;
+    height: 64px; cursor: pointer; transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+    -webkit-tap-highlight-color: transparent; user-select: none;
+  }
+  .pin-key:active { background: var(--surface2); border-color: var(--accent); transform: scale(0.94); }
+  .pin-key.del    { font-size: 1.1rem; color: var(--muted); }
+  .pin-key.empty  { background: transparent; border-color: transparent; cursor: default; pointer-events: none; }
+  .pin-error-msg  { font-size: 0.78rem; color: var(--out); text-align: center; min-height: 1.2em; letter-spacing: 0.04em; }
+
+</style>
+</head>
+<body>
+
+<!-- PIN OVERLAY -->
+<div id="pin-overlay">
+  <span class="ship-icon">⚓</span>
+  <h2>Acceso Restringido</h2>
+  <p id="pin-subtitle">Introduce el PIN de tripulación</p>
+  <div class="pin-dots">
+    <div class="pin-dot" id="dot-0"></div>
+    <div class="pin-dot" id="dot-1"></div>
+    <div class="pin-dot" id="dot-2"></div>
+    <div class="pin-dot" id="dot-3"></div>
+  </div>
+  <div class="pin-error-msg" id="pin-error"></div>
+  <div class="pin-keypad">
+    <button class="pin-key" onclick="pinPress('1')">1</button>
+    <button class="pin-key" onclick="pinPress('2')">2</button>
+    <button class="pin-key" onclick="pinPress('3')">3</button>
+    <button class="pin-key" onclick="pinPress('4')">4</button>
+    <button class="pin-key" onclick="pinPress('5')">5</button>
+    <button class="pin-key" onclick="pinPress('6')">6</button>
+    <button class="pin-key" onclick="pinPress('7')">7</button>
+    <button class="pin-key" onclick="pinPress('8')">8</button>
+    <button class="pin-key" onclick="pinPress('9')">9</button>
+    <button class="pin-key empty"></button>
+    <button class="pin-key" onclick="pinPress('0')">0</button>
+    <button class="pin-key del" onclick="pinDel()">⌫</button>
+  </div>
+</div>
+
+<!-- ══ PANTALLA PRINCIPAL ══════════════════════════════════ -->
+<div id="screen-main" class="screen active">
+  <header>
+    <span class="ship-icon">🚢</span>
+    <h1>Control de Tripulación</h1>
+    <div class="subtitle">Toca una tarjeta para cambiar el estado</div>
+    <div id="admin-badge" onclick="exitAdmin()">🎖️ Capitán · Salir</div>
+  </header>
+
+  <div class="stats">
+    <div class="stat">
+      <span class="stat-num aboard" id="count-aboard">0</span>
+      <span class="stat-label">A bordo</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num out" id="count-out">0</span>
+      <span class="stat-label">En tierra</span>
+    </div>
+  </div>
+
+  <div class="section-title" id="section-out-label">En tierra</div>
+  <div class="grid" id="grid-out"></div>
+
+  <div class="section-title" id="section-aboard-label" style="margin-top:24px">A bordo</div>
+  <div class="grid" id="grid-aboard"></div>
+
+  <div class="section-title" id="section-unknown-label" style="margin-top:24px">Sin confirmar</div>
+  <div class="grid" id="grid-unknown"></div>
+
+  <button id="log-btn" onclick="showLog()" style="margin-top:24px">📋 Ver Registro de Movimientos</button>
+  <button id="sms-btn" onclick="openSmsModal()">📨 Enviar SMS a Tripulación</button>
+  <button id="notify-btn" onclick="openNotifyModal()">🔔 Enviar Notificación Push</button>
+  <div id="push-status" onclick="subscribePush()"></div>
+</div>
+
+<!-- NOTIFY MODAL -->
+<div id="notify-modal">
+  <div class="notify-modal-box">
+    <div class="notify-modal-title">🔔 Notificación Push</div>
+    <div>
+      <div class="notify-modal-label">Título</div>
+      <input class="notify-input" id="notify-title" type="text" placeholder="Ej: Aviso del Capitán" value="Aviso del Capitán">
+    </div>
+    <div>
+      <div class="notify-modal-label">Mensaje</div>
+      <textarea class="notify-textarea" id="notify-body" placeholder="Escribe el mensaje...">Presentarse a bordo inmediatamente.</textarea>
+    </div>
+    <div class="notify-status" id="notify-status"></div>
+    <div class="notify-modal-btns">
+      <button class="notify-cancel" onclick="closeNotifyModal()">Cancelar</button>
+      <button class="notify-send" id="notify-send-btn" onclick="sendPushNotification()">🔔 Enviar</button>
+    </div>
+  </div>
+</div>
+
+<!-- SMS MODAL -->
+<div id="sms-modal">
+  <div class="sms-modal-box">
+    <div class="sms-modal-title">📨 Enviar SMS</div>
+    <div>
+      <div class="sms-modal-label" style="margin-bottom:8px">Destinatarios</div>
+      <div class="sms-recipients" id="sms-recipients"></div>
+    </div>
+    <div>
+      <div class="sms-modal-label" style="margin-bottom:8px">Mensaje</div>
+      <textarea class="sms-textarea" id="sms-text" rows="3"
+        placeholder="Escribe el mensaje aquí...">Mensaje del Capitán: presentarse a bordo inmediatamente.</textarea>
+    </div>
+    <div class="sms-modal-btns">
+      <button class="sms-cancel" onclick="closeSmsModal()">Cancelar</button>
+      <button class="sms-send"   onclick="sendSms()">📨 Abrir SMS</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PANTALLA REGISTRO ═══════════════════════════════════ -->
+<div id="screen-log" class="screen">
+  <div class="log-topbar">
+    <button class="back-btn" onclick="showMain()">← Volver</button>
+    <span class="log-topbar-title">📋 Registro</span>
+    <button class="export-btn" onclick="exportCSV()">⬇ CSV</button>
+  </div>
+
+  <div class="log-filters" id="log-filters">
+    <button class="filter-btn active" data-filter="all"    onclick="setFilter('all')">Todos</button>
+    <button class="filter-btn"        data-filter="aboard" onclick="setFilter('aboard')">A bordo</button>
+    <button class="filter-btn"        data-filter="out"    onclick="setFilter('out')">En tierra</button>
+  </div>
+
+  <div class="log-list" id="log-list"></div>
+</div>
+
+
+<!-- PIN logic -->
+<script>
+const PIN_CREW    = '2009';
+const PIN_CAPTAIN = '0302';
+const PIN_SESSION = 'barco_pin_ok';
+const ADMIN_SESSION = 'barco_admin_ok';
+
+let pinEntry = '';
+
+function updateDots() {
+  const isAdmin = sessionStorage.getItem(ADMIN_SESSION);
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById('dot-' + i);
+    dot.classList.toggle('filled', i < pinEntry.length);
+    dot.classList.toggle('admin', i < pinEntry.length && !!isAdmin);
+  }
+}
+
+function pinPress(digit) {
+  if (pinEntry.length >= 4) return;
+  pinEntry += digit;
+  updateDots();
+  if (pinEntry.length === 4) checkPin();
+}
+
+function pinDel() {
+  pinEntry = pinEntry.slice(0, -1);
+  updateDots();
+  document.getElementById('pin-error').textContent = '';
+}
+
+function checkPin() {
+  if (pinEntry === PIN_CAPTAIN) {
+    sessionStorage.setItem(PIN_SESSION, '1');
+    sessionStorage.setItem(ADMIN_SESSION, '1');
+    document.getElementById('pin-overlay').style.display = 'none';
+    activateAdmin();
+  } else if (pinEntry === PIN_CREW) {
+    sessionStorage.setItem(PIN_SESSION, '1');
+    sessionStorage.removeItem(ADMIN_SESSION);
+    document.getElementById('pin-overlay').style.display = 'none';
+  } else {
+    const dots = document.querySelectorAll('.pin-dot');
+    dots.forEach(d => { d.classList.remove('filled','admin'); d.classList.add('error'); });
+    document.getElementById('pin-error').textContent = 'PIN incorrecto, inténtalo de nuevo';
+    setTimeout(() => {
+      dots.forEach(d => d.classList.remove('error'));
+      pinEntry = ''; updateDots();
+      document.getElementById('pin-error').textContent = '';
+    }, 900);
+  }
+}
+
+function activateAdmin() {
+  document.body.classList.add('admin-mode');
+  document.getElementById('admin-badge').classList.add('visible');
+}
+
+function exitAdmin() {
+  sessionStorage.removeItem(ADMIN_SESSION);
+  document.body.classList.remove('admin-mode');
+  document.getElementById('admin-badge').classList.remove('visible');
+  showMain();
+}
+
+document.addEventListener('keydown', e => {
+  if (document.getElementById('pin-overlay').style.display === 'none') return;
+  if (e.key >= '0' && e.key <= '9') pinPress(e.key);
+  if (e.key === 'Backspace') pinDel();
+});
+
+if (sessionStorage.getItem(PIN_SESSION)) {
+  document.getElementById('pin-overlay').style.display = 'none';
+  if (sessionStorage.getItem(ADMIN_SESSION)) activateAdmin();
+}
+
+// ── Navegación entre pantallas ────────────────────────────
+function showMain() {
+  document.getElementById('screen-main').classList.add('active');
+  document.getElementById('screen-log').classList.remove('active');
+}
+
+function showLog() {
+  document.getElementById('screen-main').classList.remove('active');
+  document.getElementById('screen-log').classList.add('active');
+  renderLog();
+}
+
+// ── SMS Modal ─────────────────────────────────────────────────
+const CREW_PHONES = [
+  { name: "CESAR",   phone: "606745192" },
+  { name: "SERGIO",  phone: "600000002" },
+  { name: "SAUL",    phone: "600000003" },
+  { name: "DANI",    phone: "600000004" },
+  { name: "ANTON",   phone: "600000005" },
+  { name: "JUAN A.", phone: "600000006" },
+  { name: "MESURA",  phone: "600000007" },
+  { name: "NURIA",   phone: "600000008" },
+  { name: "ADELINO", phone: "600000009" },
+  { name: "TOÑO",    phone: "600000010" },
+  { name: "DAVID",   phone: "600000011" },
+];
+
+let selectedPhones = new Set(CREW_PHONES.map(c => c.phone));
+
+function openSmsModal() {
+  // Construir botones de destinatarios
+  const container = document.getElementById('sms-recipients');
+  container.innerHTML = '';
+  CREW_PHONES.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'sms-recipient selected';
+    btn.dataset.phone = c.phone;
+    btn.innerHTML = `✓ ${c.name}`;
+    btn.onclick = () => toggleRecipient(btn, c.phone);
+    container.appendChild(btn);
+  });
+  selectedPhones = new Set(CREW_PHONES.map(c => c.phone));
+  document.getElementById('sms-modal').classList.add('open');
+}
+
+function toggleRecipient(btn, phone) {
+  if (selectedPhones.has(phone)) {
+    selectedPhones.delete(phone);
+    btn.classList.remove('selected');
+    btn.innerHTML = `${btn.innerHTML.replace('✓ ', '')}`;
+    btn.innerHTML = btn.innerHTML.replace(/^/, '');
+    btn.textContent = btn.textContent.replace('✓ ', '').trim();
+  } else {
+    selectedPhones.add(phone);
+    btn.classList.add('selected');
+    btn.textContent = '✓ ' + btn.textContent.trim();
+  }
+}
+
+function closeSmsModal() {
+  document.getElementById('sms-modal').classList.remove('open');
+}
+
+function sendSms() {
+  if (selectedPhones.size === 0) { alert('Selecciona al menos un destinatario'); return; }
+  const text    = encodeURIComponent(document.getElementById('sms-text').value.trim());
+  const numbers = [...selectedPhones].join(',');
+  // iOS usa ; como separador, Android usa ,
+  const isIOS   = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const sep     = isIOS ? ';' : ',';
+  const nums    = [...selectedPhones].join(sep);
+  window.location.href = `sms:${nums}${isIOS ? '&' : '?'}body=${text}`;
+  closeSmsModal();
+}
+window.openSmsModal  = openSmsModal;
+window.closeSmsModal = closeSmsModal;
+window.sendSms       = sendSms;
+window.toggleRecipient = toggleRecipient;
+
+// ── Push Notifications ────────────────────────────────────────
+// ↓ Cambia esta URL por la de tu servidor tras configurarlo
+const PUSH_SERVER = 'https://push.cesyson.es';
+
+let vapidPublicKey  = null;
+let pushSubscription = null;
+
+// Obtener VAPID key del servidor e intentar suscribirse al cargar
+async function initPush() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  try {
+    const res  = await fetch(`${PUSH_SERVER}/vapid-public-key`);
+    const data = await res.json();
+    vapidPublicKey = data.key;
+
+    const reg = await navigator.serviceWorker.ready;
+    pushSubscription = await reg.pushManager.getSubscription();
+    updatePushStatus();
+  } catch (e) {
+    console.warn('Push server no disponible:', e.message);
+  }
+}
+
+function updatePushStatus() {
+  const el = document.getElementById('push-status');
+  if (!el) return;
+  el.classList.add('visible');
+  if (pushSubscription) {
+    el.textContent = '🔔 Notificaciones activadas';
+    el.className = 'subscribed visible';
+  } else {
+    el.textContent = '🔕 Activar notificaciones';
+    el.className = 'unsubscribed visible';
+  }
+}
+
+async function subscribePush() {
+  if (pushSubscription) return; // ya suscrito
+  if (!vapidPublicKey) { alert('Servidor push no disponible'); return; }
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') { alert('Permiso de notificaciones denegado'); return; }
+
+    const reg = await navigator.serviceWorker.ready;
+    pushSubscription = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+    });
+
+    // Guardar suscripción en el servidor
+    // Usamos un ID basado en el dispositivo (timestamp de primera visita)
+    let deviceId = localStorage.getItem('barco_device_id');
+    if (!deviceId) {
+      deviceId = 'device_' + Date.now();
+      localStorage.setItem('barco_device_id', deviceId);
+    }
+
+    await fetch(`${PUSH_SERVER}/subscribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subscription: pushSubscription, crewId: deviceId })
+    });
+
+    updatePushStatus();
+  } catch (e) {
+    console.error('Error suscribiéndose:', e);
+    alert('Error activando notificaciones: ' + e.message);
+  }
+}
+window.subscribePush = subscribePush;
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64  = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw     = atob(base64);
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+// Modal de notificación push
+function openNotifyModal() {
+  document.getElementById('notify-status').textContent = '';
+  document.getElementById('notify-status').className = 'notify-status';
+  document.getElementById('notify-modal').classList.add('open');
+}
+function closeNotifyModal() {
+  document.getElementById('notify-modal').classList.remove('open');
+}
+async function sendPushNotification() {
+  const title = document.getElementById('notify-title').value.trim();
+  const body  = document.getElementById('notify-body').value.trim();
+  const btn   = document.getElementById('notify-send-btn');
+  const statusEl = document.getElementById('notify-status');
+
+  if (!title || !body) { alert('Rellena el título y el mensaje'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+  statusEl.className = 'notify-status';
+  statusEl.textContent = '';
+
+  try {
+    const res  = await fetch(`${PUSH_SERVER}/notify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, body, adminPin: '0302' })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      statusEl.textContent = `✓ Enviado a ${data.sent} dispositivo${data.sent !== 1 ? 's' : ''}`;
+      statusEl.className = 'notify-status ok';
+      setTimeout(() => closeNotifyModal(), 2000);
+    } else {
+      throw new Error(data.error || 'Error desconocido');
+    }
+  } catch (e) {
+    statusEl.textContent = '✗ Error: ' + e.message;
+    statusEl.className = 'notify-status error';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🔔 Enviar';
+  }
+}
+window.openNotifyModal  = openNotifyModal;
+window.closeNotifyModal = closeNotifyModal;
+window.sendPushNotification = sendPushNotification;
+
+// Inicializar push al cargar
+initPush();
+</script>
+
+<!-- Firebase + App logic -->
+<script type="module">
+import { initializeApp }                        from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, onValue, set, push } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyDY0VwMXFhNCa9eN4fGchGw0e6FpDA5kOE",
+  authDomain:        "onboard-8a1cf.firebaseapp.com",
+  databaseURL:       "https://onboard-8a1cf-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "onboard-8a1cf",
+  storageBucket:     "onboard-8a1cf.firebasestorage.app",
+  messagingSenderId: "305623972369",
+  appId:             "1:305623972369:web:09a8a752d4402f290d0fb0"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+// ── Tripulación ───────────────────────────────────────────────
+const CREW = [
+  { id: 1,  name: "CESAR",   role: "Puente",   phone: "600000001" },
+  { id: 2,  name: "SERGIO",  role: "Puente",   phone: "600000002" },
+  { id: 3,  name: "SAUL",    role: "Puente",   phone: "600000003" },
+  { id: 4,  name: "DANI",    role: "Máquinas", phone: "600000004" },
+  { id: 5,  name: "ANTON",   role: "Máquinas", phone: "600000005" },
+  { id: 6,  name: "JUAN A.", role: "Cubierta", phone: "600000006" },
+  { id: 7,  name: "MESURA",  role: "Cubierta", phone: "600000007" },
+  { id: 8,  name: "NURIA",   role: "Cubierta", phone: "600000008" },
+  { id: 9,  name: "ADELINO", role: "Sistemas", phone: "600000009" },
+  { id: 10, name: "TOÑO",    role: "Máquinas", phone: "600000010" },
+  { id: 11, name: "DAVID",   role: "Servicio", phone: "600000011" },
+];
+
+let statuses  = {};
+let logEntries = [];
+let logFilter  = 'all';
+
+// ── Estado actual ─────────────────────────────────────────────
+onValue(ref(db, 'crew'), snapshot => {
+  statuses = snapshot.val() || {};
+  renderAll();
+});
+
+// ── Registro de movimientos ───────────────────────────────────
+onValue(ref(db, 'log'), snapshot => {
+  const data = snapshot.val() || {};
+  logEntries = Object.values(data).sort((a, b) => b.ts - a.ts);
+  renderLog();
+});
+
+// ── Cambiar estado + guardar en log ──────────────────────────
+function setStatus(id, status) {
+  const member = CREW.find(c => c.id === id);
+  const now    = new Date();
+  const time   = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  const date   = now.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+  // Actualizar estado actual
+  set(ref(db, `crew/${id}`), { status, time });
+
+  // Guardar entrada en el log
+  push(ref(db, 'log'), {
+    name:   member.name,
+    role:   member.role,
+    status,
+    time,
+    date,
+    ts: now.getTime()
+  });
+}
+window.setStatus = setStatus;
+
+// ── Renderizar tarjetas ───────────────────────────────────────
+function makeCard(c) {
+  const s      = statuses[c.id];
+  const status = s ? s.status : 'unknown';
+  const card   = document.createElement('div');
+  card.className = `card ${status}`;
+  card.innerHTML = `
+    <div class="card-name">${c.name}</div>
+    <div class="card-role">${c.role}</div>
+    <div class="card-time">${s ? 'desde ' + s.time : 'Sin confirmar'}</div>
+    <a class="card-phone" href="tel:${c.phone}">📞 ${c.phone}</a>
+    <div class="card-btns">
+      <button class="card-btn aboard-btn${status === 'aboard' ? ' active' : ''}"
+        onclick="setStatus(${c.id},'aboard')">⚓ A Bordo</button>
+      <button class="card-btn out-btn${status === 'out' ? ' active' : ''}"
+        onclick="setStatus(${c.id},'out')">🏖️ Tierra</button>
+    </div>`;
+  return card;
+}
+
+function renderAll() {
+  const aboardEl  = document.getElementById('grid-aboard');
+  const outEl     = document.getElementById('grid-out');
+  const unknownEl = document.getElementById('grid-unknown');
+  aboardEl.innerHTML = outEl.innerHTML = unknownEl.innerHTML = '';
+  let countAboard = 0, countOut = 0;
+
+  CREW.forEach(c => {
+    const s    = statuses[c.id];
+    const card = makeCard(c);
+    if (!s)                         { unknownEl.appendChild(card); }
+    else if (s.status === 'aboard') { aboardEl.appendChild(card); countAboard++; }
+    else                            { outEl.appendChild(card);    countOut++;    }
+  });
+
+  document.getElementById('count-aboard').textContent = countAboard;
+  document.getElementById('count-out').textContent    = countOut;
+  document.getElementById('section-aboard-label').style.display  = aboardEl.children.length  ? '' : 'none';
+  document.getElementById('section-out-label').style.display     = outEl.children.length     ? '' : 'none';
+  document.getElementById('section-unknown-label').style.display = unknownEl.children.length ? '' : 'none';
+}
+
+// ── Renderizar log ────────────────────────────────────────────
+function renderLog() {
+  const list = document.getElementById('log-list');
+  const filtered = logFilter === 'all' ? logEntries : logEntries.filter(e => e.status === logFilter);
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="log-empty"><span class="log-empty-icon">📋</span>No hay movimientos registrados aún</div>`;
+    return;
+  }
+
+  list.innerHTML = '';
+  filtered.forEach(e => {
+    const div = document.createElement('div');
+    div.className = 'log-entry';
+    div.innerHTML = `
+      <div class="log-entry-dot ${e.status}"></div>
+      <div class="log-entry-info">
+        <div class="log-entry-name">${e.name}</div>
+        <div class="log-entry-role">${e.role}</div>
+      </div>
+      <div class="log-entry-right">
+        <div class="log-entry-status ${e.status}">${e.status === 'aboard' ? 'A bordo' : 'En tierra'}</div>
+        <div class="log-entry-datetime">${e.date} · ${e.time}</div>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+window.renderLog = renderLog;
+
+// ── Filtros ───────────────────────────────────────────────────
+window.setFilter = function(filter) {
+  logFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.filter === filter);
+  });
+  renderLog();
+};
+
+// ── Exportar CSV ──────────────────────────────────────────────
+window.exportCSV = function() {
+  if (logEntries.length === 0) { alert('No hay datos para exportar'); return; }
+  const header = 'Nombre,Rol,Estado,Fecha,Hora';
+  const rows = logEntries.map(e =>
+    `"${e.name}","${e.role}","${e.status === 'aboard' ? 'A bordo' : 'En tierra'}","${e.date}","${e.time}"`
+  );
+  const csv  = [header, ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `registro-tripulacion-${new Date().toLocaleDateString('es-ES').replace(/\//g,'-')}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+// ── PWA Service Worker ────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE = 'tripulacion-v3';
+    self.addEventListener('install', e => { self.skipWaiting(); });
+    self.addEventListener('fetch', e => {
+      if (e.request.url.includes('firebasedatabase')) return;
+      e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+    });
+    self.addEventListener('push', e => {
+      const data = e.data ? e.data.json() : { title: 'Aviso', body: 'Nuevo mensaje del Capitán' };
+      e.waitUntil(self.registration.showNotification(data.title, {
+        body:      data.body,
+        icon:      data.icon  || '/icon-192.png',
+        badge:     data.badge || '/icon-192.png',
+        vibrate:   [200, 100, 200],
+        timestamp: data.timestamp || Date.now(),
+        requireInteraction: true
+      }));
+    });
+    self.addEventListener('notificationclick', e => {
+      e.notification.close();
+      e.waitUntil(clients.openWindow('/'));
+    });
+  `;
+  navigator.serviceWorker.register(URL.createObjectURL(new Blob([swCode], { type: 'application/javascript' }))).catch(() => {});
+}
+
+// ── Banner instalación Android ────────────────────────────────
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredPrompt = e;
+  document.getElementById('install-banner').style.display = 'flex';
+});
+window.addEventListener('appinstalled', () => {
+  document.getElementById('install-banner').style.display = 'none';
+});
+window.installApp = function() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => {
+      deferredPrompt = null;
+      document.getElementById('install-banner').style.display = 'none';
+    });
+  }
+};
+</script>
+
+<!-- Banner instalación Android -->
+<div id="install-banner" style="
+  display:none; position:fixed; bottom:0; left:0; right:0;
+  background:#0d1f35; border-top:1px solid #1a3a5c;
+  padding:14px 16px; align-items:center; justify-content:space-between;
+  gap:12px; z-index:200; font-family:'DM Sans',sans-serif;">
+  <div style="display:flex;align-items:center;gap:10px">
+    <span style="font-size:1.6rem">🚢</span>
+    <div>
+      <div style="font-weight:700;font-size:0.85rem;color:#e8f4fd">Instalar como app</div>
+      <div style="font-size:0.72rem;color:#4d7fa8">Añadir a pantalla de inicio</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button onclick="document.getElementById('install-banner').style.display='none'"
+      style="background:transparent;border:1px solid #1a3a5c;color:#4d7fa8;
+      padding:8px 12px;border-radius:8px;cursor:pointer;font-size:0.78rem">Ahora no</button>
+    <button onclick="installApp()"
+      style="background:#38bdf8;border:none;color:#000;font-weight:700;
+      padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.78rem">Instalar</button>
+  </div>
+</div>
+</body>
+</html>
