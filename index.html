@@ -125,6 +125,130 @@
   #sms-btn:hover { background: #166534; color: #fff; }
   body.admin-mode #sms-btn { display: block; }
 
+  #settings-btn {
+    display: none;
+    margin: 8px 12px 0;
+    width: calc(100% - 24px);
+    padding: 13px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--muted);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  #settings-btn:hover { border-color: var(--accent); color: var(--accent); }
+  body.admin-mode #settings-btn { display: block; }
+
+  /* ── SETTINGS SCREEN ─────────────────────── */
+  .settings-section {
+    padding: 0 14px;
+    margin-top: 20px;
+  }
+
+  .settings-section-title {
+    font-family: 'Syne', sans-serif; font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted);
+    margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+  }
+  .settings-section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .crew-edit-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .crew-edit-info { flex: 1; min-width: 0; }
+  .crew-edit-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.88rem; }
+  .crew-edit-detail { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+  .crew-edit-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+  .edit-btn {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 7px 10px; cursor: pointer;
+    font-size: 0.78rem; color: var(--text); transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .edit-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .delete-btn {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 7px 10px; cursor: pointer;
+    font-size: 0.78rem; color: var(--out); transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .delete-btn:hover { background: var(--out-dim); border-color: var(--out); }
+
+  .add-crew-btn {
+    width: 100%; padding: 12px; border-radius: 12px;
+    background: var(--surface); border: 1px dashed var(--border);
+    color: var(--muted); font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 0.82rem; cursor: pointer; transition: all 0.2s;
+    text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px;
+  }
+  .add-crew-btn:hover { border-color: var(--aboard); color: var(--aboard); }
+
+  .pin-edit-row {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .pin-edit-label { flex: 1; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem; }
+  .pin-edit-value { font-size: 0.78rem; color: var(--muted); letter-spacing: 0.2em; }
+
+  /* Modal edición tripulante / PIN */
+  #edit-modal {
+    display: none; position: fixed; inset: 0; z-index: 250;
+    background: #00000099; backdrop-filter: blur(4px);
+    align-items: flex-end; justify-content: center; padding: 16px;
+  }
+  #edit-modal.open { display: flex; }
+
+  .edit-modal-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 24px 20px; width: 100%; max-width: 480px;
+    display: flex; flex-direction: column; gap: 14px;
+    animation: slideUp 0.25s ease;
+  }
+
+  .edit-modal-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .edit-modal-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
+
+  .edit-field-input {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 11px 12px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+    outline: none; width: 100%; transition: border-color 0.2s;
+  }
+  .edit-field-input:focus { border-color: var(--accent); }
+
+  .edit-modal-btns { display: flex; gap: 8px; margin-top: 4px; }
+
+  .edit-cancel {
+    flex: 1; padding: 12px; border-radius: 10px;
+    background: transparent; border: 1px solid var(--border);
+    color: var(--muted); font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 0.82rem; cursor: pointer; transition: all 0.18s;
+  }
+  .edit-cancel:hover { border-color: var(--text); color: var(--text); }
+
+  .edit-save {
+    flex: 2; padding: 12px; border-radius: 10px;
+    background: var(--admin-dim); border: 1px solid var(--admin);
+    color: var(--admin); font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 0.82rem; cursor: pointer;
+    transition: all 0.18s; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .edit-save:hover { background: var(--admin); color: #000; }
+
   /* SMS MODAL */
   #sms-modal {
     display: none;
@@ -458,6 +582,7 @@
 
   <button id="log-btn" onclick="showLog()" style="margin-top:24px">📋 Ver Registro de Movimientos</button>
   <button id="sms-btn" onclick="openSmsModal()">📨 Enviar SMS a Tripulación</button>
+  <button id="settings-btn" onclick="showSettings()">⚙️ Configuración</button>
 </div>
 
 <!-- SMS MODAL -->
@@ -530,12 +655,15 @@ function pinDel() {
 }
 
 function checkPin() {
-  if (pinEntry === PIN_CAPTAIN) {
+  const pinCrew    = window._pinCrew    || PIN_CREW;
+  const pinCaptain = window._pinCaptain || PIN_CAPTAIN;
+
+  if (pinEntry === pinCaptain) {
     sessionStorage.setItem(PIN_SESSION, '1');
     sessionStorage.setItem(ADMIN_SESSION, '1');
     document.getElementById('pin-overlay').style.display = 'none';
     activateAdmin();
-  } else if (pinEntry === PIN_CREW) {
+  } else if (pinEntry === pinCrew) {
     sessionStorage.setItem(PIN_SESSION, '1');
     sessionStorage.removeItem(ADMIN_SESSION);
     document.getElementById('pin-overlay').style.display = 'none';
@@ -562,7 +690,6 @@ function exitAdmin() {
   document.getElementById('admin-badge').classList.remove('visible');
   showMain();
 }
-
 document.addEventListener('keydown', e => {
   if (document.getElementById('pin-overlay').style.display === 'none') return;
   if (e.key >= '0' && e.key <= '9') pinPress(e.key);
@@ -578,12 +705,22 @@ if (sessionStorage.getItem(PIN_SESSION)) {
 function showMain() {
   document.getElementById('screen-main').classList.add('active');
   document.getElementById('screen-log').classList.remove('active');
+  document.getElementById('screen-settings').classList.remove('active');
 }
 
 function showLog() {
   document.getElementById('screen-main').classList.remove('active');
   document.getElementById('screen-log').classList.add('active');
+  document.getElementById('screen-settings').classList.remove('active');
   renderLog();
+}
+
+function showSettings() {
+  document.getElementById('screen-main').classList.remove('active');
+  document.getElementById('screen-log').classList.remove('active');
+  document.getElementById('screen-settings').classList.add('active');
+  renderCrewEdit();
+  renderPinDisplay();
 }
 
 // ── SMS Modal ─────────────────────────────────────────────────
@@ -841,6 +978,137 @@ window.exportCSV = function() {
   URL.revokeObjectURL(url);
 };
 
+// ── Configuración: tripulantes y PINs desde Firebase ─────────
+let editingCrewId = null;
+let editModalMode = null;
+
+// Escuchar PINs desde Firebase y sobrescribir los del sessionStorage/memoria
+onValue(ref(db, 'config'), snapshot => {
+  const cfg = snapshot.val() || {};
+  if (cfg.pinCrew)    window._pinCrew    = cfg.pinCrew;
+  if (cfg.pinCaptain) window._pinCaptain = cfg.pinCaptain;
+});
+
+// Escuchar lista de tripulantes desde Firebase
+onValue(ref(db, 'crewList'), snapshot => {
+  const data = snapshot.val();
+  if (data) {
+    CREW.length = 0;
+    Object.entries(data).forEach(([id, c]) => CREW.push({ id: parseInt(id), ...c }));
+    CREW.sort((a, b) => a.id - b.id);
+    renderAll();
+    renderCrewEdit();
+  }
+});
+
+function renderCrewEdit() {
+  const list = document.getElementById('crew-edit-list');
+  if (!list) return;
+  list.innerHTML = '';
+  CREW.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'crew-edit-card';
+    div.innerHTML = `
+      <div class="crew-edit-info">
+        <div class="crew-edit-name">${c.name}</div>
+        <div class="crew-edit-detail">${c.role} · 📞 ${c.phone || 'Sin teléfono'}</div>
+      </div>
+      <div class="crew-edit-actions">
+        <button class="edit-btn"   onclick="openEditCrew(${c.id})">✏️</button>
+        <button class="delete-btn" onclick="deleteCrew(${c.id})">🗑️</button>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+window.renderCrewEdit = renderCrewEdit;
+window.renderPinDisplay = function() {};
+
+window.openEditCrew = function(id) {
+  const c = CREW.find(m => m.id === id);
+  if (!c) return;
+  editingCrewId = id; editModalMode = 'crew-edit';
+  document.getElementById('edit-modal-title').textContent = 'Editar tripulante';
+  document.getElementById('edit-modal-fields').innerHTML = `
+    <div><div class="edit-modal-label">Nombre</div>
+      <input class="edit-field-input" id="ef-name"  value="${c.name}"  placeholder="Nombre"></div>
+    <div><div class="edit-modal-label">Rol</div>
+      <input class="edit-field-input" id="ef-role"  value="${c.role}"  placeholder="Rol"></div>
+    <div><div class="edit-modal-label">Teléfono</div>
+      <input class="edit-field-input" id="ef-phone" value="${c.phone || ''}" placeholder="600000000" type="tel"></div>`;
+  document.getElementById('edit-modal').classList.add('open');
+};
+
+window.openAddCrew = function() {
+  editingCrewId = null; editModalMode = 'crew-add';
+  document.getElementById('edit-modal-title').textContent = 'Añadir tripulante';
+  document.getElementById('edit-modal-fields').innerHTML = `
+    <div><div class="edit-modal-label">Nombre</div>
+      <input class="edit-field-input" id="ef-name"  value="" placeholder="Nombre"></div>
+    <div><div class="edit-modal-label">Rol</div>
+      <input class="edit-field-input" id="ef-role"  value="" placeholder="Puente, Máquinas..."></div>
+    <div><div class="edit-modal-label">Teléfono</div>
+      <input class="edit-field-input" id="ef-phone" value="" placeholder="600000000" type="tel"></div>`;
+  document.getElementById('edit-modal').classList.add('open');
+};
+
+window.deleteCrew = function(id) {
+  if (!confirm('¿Eliminar este tripulante?')) return;
+  set(ref(db, `crewList/${id}`), null);
+  set(ref(db, `crew/${id}`), null);
+};
+
+window.openEditPin = function(type) {
+  editModalMode = type === 'crew' ? 'pin-crew' : 'pin-captain';
+  const label = type === 'crew' ? 'PIN Tripulación' : 'PIN Capitán';
+  document.getElementById('edit-modal-title').textContent = `Cambiar ${label}`;
+  document.getElementById('edit-modal-fields').innerHTML = `
+    <div><div class="edit-modal-label">Nuevo PIN (4 dígitos)</div>
+      <input class="edit-field-input" id="ef-pin" value="" placeholder="0000" type="tel" maxlength="4"></div>
+    <div><div class="edit-modal-label">Confirmar PIN</div>
+      <input class="edit-field-input" id="ef-pin2" value="" placeholder="0000" type="tel" maxlength="4"></div>`;
+  document.getElementById('edit-modal').classList.add('open');
+};
+
+window.closeEditModal = function() {
+  document.getElementById('edit-modal').classList.remove('open');
+  editingCrewId = null; editModalMode = null;
+};
+
+window.saveEditModal = function() {
+  if (editModalMode === 'crew-edit' || editModalMode === 'crew-add') {
+    const name  = document.getElementById('ef-name')?.value.trim();
+    const role  = document.getElementById('ef-role')?.value.trim();
+    const phone = document.getElementById('ef-phone')?.value.trim();
+    if (!name || !role) { alert('El nombre y el rol son obligatorios'); return; }
+    if (editModalMode === 'crew-add') {
+      const newId = CREW.length > 0 ? Math.max(...CREW.map(c => c.id)) + 1 : 1;
+      set(ref(db, `crewList/${newId}`), { name, role, phone });
+    } else {
+      set(ref(db, `crewList/${editingCrewId}`), { name, role, phone });
+    }
+  } else if (editModalMode === 'pin-crew' || editModalMode === 'pin-captain') {
+    const pin  = document.getElementById('ef-pin')?.value.trim();
+    const pin2 = document.getElementById('ef-pin2')?.value.trim();
+    if (!pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) { alert('El PIN debe tener exactamente 4 dígitos'); return; }
+    if (pin !== pin2) { alert('Los PINs no coinciden'); return; }
+    const key = editModalMode === 'pin-crew' ? 'pinCrew' : 'pinCaptain';
+    set(ref(db, `config/${key}`), pin);
+    if (key === 'pinCrew')    window._pinCrew    = pin;
+    if (key === 'pinCaptain') window._pinCaptain = pin;
+    alert('PIN actualizado. Entrará en vigor en el próximo inicio de sesión.');
+  }
+  closeEditModal();
+};
+
+// Inicializar crewList en Firebase la primera vez
+onValue(ref(db, 'crewList'), snapshot => {
+  if (!snapshot.val()) {
+    const initial = {};
+    CREW.forEach(c => { initial[c.id] = { name: c.name, role: c.role, phone: c.phone }; });
+    set(ref(db, 'crewList'), initial);
+  }
+}, { onlyOnce: true });
+
 // ── PWA Service Worker ────────────────────────────────────────
 if ('serviceWorker' in navigator) {
   const swCode = `
@@ -872,6 +1140,48 @@ window.installApp = function() {
   }
 };
 </script>
+
+<!-- ══ PANTALLA CONFIGURACIÓN ══════════════════════════════════ -->
+<div id="screen-settings" class="screen">
+  <div class="log-topbar">
+    <button class="back-btn" onclick="showMain()">← Volver</button>
+    <span class="log-topbar-title">⚙️ Configuración</span>
+  </div>
+
+  <!-- Tripulantes -->
+  <div class="settings-section">
+    <div class="settings-section-title">👥 Tripulación</div>
+    <div id="crew-edit-list"></div>
+    <button class="add-crew-btn" onclick="openAddCrew()">+ Añadir tripulante</button>
+  </div>
+
+  <!-- PINs -->
+  <div class="settings-section" style="margin-bottom:40px">
+    <div class="settings-section-title">🔐 Códigos de acceso</div>
+    <div class="pin-edit-row">
+      <div class="pin-edit-label">PIN Tripulación</div>
+      <div class="pin-edit-value" id="pin-crew-display">••••</div>
+      <button class="edit-btn" onclick="openEditPin('crew')">✏️ Cambiar</button>
+    </div>
+    <div class="pin-edit-row">
+      <div class="pin-edit-label">PIN Capitán</div>
+      <div class="pin-edit-value" id="pin-captain-display">••••</div>
+      <button class="edit-btn" onclick="openEditPin('captain')">✏️ Cambiar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal edición -->
+<div id="edit-modal">
+  <div class="edit-modal-box">
+    <div class="edit-modal-title" id="edit-modal-title">Editar tripulante</div>
+    <div id="edit-modal-fields"></div>
+    <div class="edit-modal-btns">
+      <button class="edit-cancel" onclick="closeEditModal()">Cancelar</button>
+      <button class="edit-save"   onclick="saveEditModal()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
 
 <!-- Banner instalación Android -->
 <div id="install-banner" style="
